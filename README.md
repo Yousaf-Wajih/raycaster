@@ -4,10 +4,6 @@ Welcome to the Raycaster project by The Hello World Guy! This project is a step-
 
 **[Watch the series here!](https://www.youtube.com/watch?v=1Y3Xt6AiiVw&list=PLlnvVTSJ0XwcsRgaXHeQZBhOX5KTOKaXZ)**
 
-## GitHub Repository
-
-Explore the code and contribute to the project on our [GitHub repository](https://github.com/Yousaf-Wajih/raycaster). Feel free to open issues, suggest improvements, or fork the project!
-
 ## Community and Support
 
 Join our community of developers on YouTube by subscribing to [The Hello World Guy](www.youtube.com/@thehelloworldguyofficial). Engage with fellow developers, ask questions, and share your progress in the comments section of each video.
