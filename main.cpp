@@ -1,8 +1,11 @@
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/VideoMode.hpp>
 
 #include "map.h"
+#include "player.h"
 
 int main() {
   sf::RenderWindow window(sf::VideoMode(1200, 675), "Raycaster");
@@ -23,7 +26,13 @@ int main() {
   };
   Map map(48.0f, grid);
 
+  Player player;
+  player.position = sf::Vector2f(50, 50);
+
+  sf::Clock gameClock;
   while (window.isOpen()) {
+    float deltaTime = gameClock.restart().asSeconds();
+
     sf::Event event;
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
@@ -31,8 +40,11 @@ int main() {
       }
     }
 
+    player.update(deltaTime);
+
     window.clear();
     map.draw(window);
+    player.draw(window);
     window.display();
   }
 }

@@ -27,7 +27,7 @@ void Map::draw(sf::RenderTarget &target) {
   for (size_t y = 0; y < grid.size(); y++) {
     for (size_t x = 0; x < grid[y].size(); x++) {
       if (grid[y][x] == 0) {
-        cell.setFillColor(sf::Color::Black);
+        cell.setFillColor(sf::Color(70, 70, 70));
       } else if (grid[y][x] == 1) {
         cell.setFillColor(sf::Color::White);
       }
