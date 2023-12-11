@@ -2,7 +2,7 @@
 
 Welcome to the Raycaster project by The Hello World Guy! This project is a step-by-step exploration of building a basic raycasting renderer in C++ using the SFML library. The goal is to help developers understand the fundamentals of raycasting and gain hands-on experience in game development.
 
-**[Watch the series here!](https://www.youtube.com/watch?v=1Y3Xt6AiiVw&list=PLlnvVTSJ0XwcsRgaXHeQZBhOX5KTOKaXZ)**
+**[Watch the series here!](https://www.youtube.com/watch?v=fPJOigUC7yU&list=PLlnvVTSJ0XwcsRgaXHeQZBhOX5KTOKaXZ&index=1)**
 
 ## Community and Support
 
