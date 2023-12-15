@@ -5,6 +5,7 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cstddef>
+#include <vector>
 
 Map::Map(float cellSize, int width, int height)
     : cellSize(cellSize), grid(height, std::vector(width, 0)) {}
@@ -17,11 +18,6 @@ void Map::draw(sf::RenderTarget &target) {
     return;
   }
 
-  sf::RectangleShape background(sf::Vector2f((float)grid[0].size() * cellSize,
-                                             (float)grid.size() * cellSize));
-  background.setFillColor(sf::Color::Green);
-  target.draw(background);
-
   sf::RectangleShape cell(sf::Vector2f(cellSize * 0.95f, cellSize * 0.95f));
 
   for (size_t y = 0; y < grid.size(); y++) {
@@ -29,7 +25,7 @@ void Map::draw(sf::RenderTarget &target) {
       if (grid[y][x] == 0) {
         cell.setFillColor(sf::Color(70, 70, 70));
       } else if (grid[y][x] == 1) {
-        cell.setFillColor(sf::Color::White);
+        cell.setFillColor(sf::Color::Green);
       }
 
       cell.setPosition(sf::Vector2f(x, y) * cellSize +
@@ -38,3 +34,6 @@ void Map::draw(sf::RenderTarget &target) {
     }
   }
 }
+
+const std::vector<std::vector<int>> &Map::getGrid() const { return grid; }
+float Map::getCellSize() const { return cellSize; }

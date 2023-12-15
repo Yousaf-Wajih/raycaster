@@ -6,6 +6,7 @@
 
 #include "map.h"
 #include "player.h"
+#include "renderer.h"
 
 int main() {
   sf::RenderWindow window(sf::VideoMode(1200, 675), "Raycaster");
@@ -29,6 +30,8 @@ int main() {
   Player player;
   player.position = sf::Vector2f(50, 50);
 
+  Renderer renderer;
+
   sf::Clock gameClock;
   while (window.isOpen()) {
     float deltaTime = gameClock.restart().asSeconds();
@@ -44,6 +47,7 @@ int main() {
 
     window.clear();
     map.draw(window);
+    renderer.drawRays(window, player, map);
     player.draw(window);
     window.display();
   }

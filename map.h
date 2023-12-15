@@ -11,6 +11,9 @@ public:
 
   void draw(sf::RenderTarget &target);
 
+  const std::vector<std::vector<int>> &getGrid() const;
+  float getCellSize() const;
+
 private:
   std::vector<std::vector<int>> grid;
   float cellSize;
