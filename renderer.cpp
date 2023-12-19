@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
@@ -10,14 +11,49 @@
 constexpr float PI = 3.141592653589793f;
 constexpr float PLAYER_FOV = 60.0f;
 constexpr size_t MAX_RAYCAST_DEPTH = 16;
+constexpr size_t NUM_RAYS = 600;
+constexpr float COLUMN_WIDTH = SCREEN_W / (float)NUM_RAYS;
 
 struct Ray {
   sf::Vector2f hitPosition;
   float distance;
   bool hit;
+  bool isHitVertical;
 };
 
 static Ray castRay(sf::Vector2f start, float angleInDegrees, const Map &map);
+
+void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
+                          const Map &map) {
+  float angle = player.angle - PLAYER_FOV / 2.0f;
+  float angleIncrement = PLAYER_FOV / (float)NUM_RAYS;
+  const float maxRenderDistance = MAX_RAYCAST_DEPTH * map.getCellSize();
+  for (size_t i = 0; i < NUM_RAYS; i++, angle += angleIncrement) {
+    Ray ray = castRay(player.position, angle, map);
+
+    if (ray.hit) {
+      ray.distance *= std::cos((player.angle - angle) * PI / 180.0f);
+
+      float wallHeight = (map.getCellSize() * SCREEN_H) / ray.distance;
+      if (wallHeight > SCREEN_H) {
+        wallHeight = SCREEN_H;
+      }
+
+      float brightness = 1.0f - (ray.distance / maxRenderDistance);
+      if (brightness < 0.0f) {
+        brightness = 0.0f;
+      }
+
+      float shade = (ray.isHitVertical ? 0.8f : 1.0f) * brightness;
+
+      float wallOffset = SCREEN_H / 2.0f - wallHeight / 2.0f;
+      sf::RectangleShape column(sf::Vector2f(COLUMN_WIDTH, wallHeight));
+      column.setPosition(i * COLUMN_WIDTH, wallOffset);
+      column.setFillColor(sf::Color(255 * shade, 255 * shade, 255 * shade));
+      target.draw(column);
+    }
+  }
+}
 
 void Renderer::drawRays(sf::RenderTarget &target, const Player &player,
                         const Map &map) {
@@ -107,5 +143,6 @@ Ray castRay(sf::Vector2f start, float angleInDegrees, const Map &map) {
     hRayPos += offset;
   }
 
-  return Ray{hdist < vdist ? hRayPos : vRayPos, std::min(hdist, vdist), hit};
+  return Ray{hdist < vdist ? hRayPos : vRayPos, std::min(hdist, vdist), hit,
+             vdist <= hdist};
 }
