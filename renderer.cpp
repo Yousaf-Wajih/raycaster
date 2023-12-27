@@ -53,11 +53,12 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
   target.draw(rectangle);
 
   const sf::Color fogColor = sf::Color(100, 170, 250);
-
-  float angle = player.angle - PLAYER_FOV / 2.0f;
-  float angleIncrement = PLAYER_FOV / (float)NUM_RAYS;
   const float maxRenderDistance = MAX_RAYCAST_DEPTH * map.getCellSize();
   const float maxFogDistance = maxRenderDistance / 4.0f;
+
+  sf::RectangleShape column{sf::Vector2f(1.0f, 1.0f)};
+  float angle = player.angle - PLAYER_FOV / 2.0f;
+  float angleIncrement = PLAYER_FOV / (float)NUM_RAYS;
   for (size_t i = 0; i < NUM_RAYS; i++, angle += angleIncrement) {
     Ray ray = castRay(player.position, angle, map);
 
@@ -99,13 +100,14 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
         fogPercentage = 1.0f;
       }
 
-      // sf::Color color = map.getGrid()[ray.mapPosition.y][ray.mapPosition.x];
-      // color = sf::Color(color.r * shade, color.g * shade, color.b * shade);
-      // column.setFillColor(sf::Color(
-      // (1.0f - fogPercentage) * color.r + fogPercentage * fogColor.r,
-      // (1.0f - fogPercentage) * color.g + fogPercentage * fogColor.g,
-      // (1.0f - fogPercentage) * color.b + fogPercentage * fogColor.b));
+      column.setPosition(i * COLUMN_WIDTH, wallOffset);
+      column.setScale(COLUMN_WIDTH, wallHeight);
+      column.setFillColor(
+          sf::Color(fogColor.r, fogColor.g, fogColor.b, fogPercentage * 255));
+
+      wallSprite.setColor(sf::Color(255 * shade, 255 * shade, 255 * shade));
       target.draw(wallSprite);
+      target.draw(column);
     }
   }
 }
