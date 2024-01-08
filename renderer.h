@@ -19,7 +19,6 @@ public:
 
 private:
   sf::Texture wallTexture;
-  sf::Sprite wallSprite;
 };
 
 #endif // !_RENDERER_H

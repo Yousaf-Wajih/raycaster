@@ -24,8 +24,6 @@ void Renderer::init() {
     std::cerr << "ERROR: Texture is not square\n";
     return;
   }
-
-  wallSprite = sf::Sprite(wallTexture);
 }
 
 void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
