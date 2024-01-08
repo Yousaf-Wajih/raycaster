@@ -14,14 +14,6 @@ constexpr float PI = 3.141592653589793f;
 constexpr float PLAYER_FOV = 60.0f;
 constexpr size_t MAX_RAYCAST_DEPTH = 64;
 
-struct Ray {
-  sf::Vector2f hitPosition;
-  sf::Vector2u mapPosition;
-  float distance;
-  bool hit;
-  bool isHitVertical;
-};
-
 void Renderer::init() {
   if (!wallTexture.loadFromFile("wall_texture.png")) {
     std::cerr << "Failed to load wall_texture.png!\n";
