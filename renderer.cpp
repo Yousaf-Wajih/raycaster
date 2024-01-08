@@ -34,12 +34,6 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
   rectangle.setFillColor(sf::Color(100, 170, 250));
   target.draw(rectangle);
 
-  rectangle.setPosition(0.0f, SCREEN_H / 2.0f);
-  rectangle.setFillColor(sf::Color(70, 70, 70));
-  target.draw(rectangle);
-
-  const sf::Color fogColor = sf::Color(100, 170, 250);
-
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane{-direction.y, direction.x * 0.66f};
