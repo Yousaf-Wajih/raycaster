@@ -50,7 +50,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
 
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
-  sf::Vector2f plane{-direction.y, direction.x};
+  sf::Vector2f plane{-direction.y, direction.x * 0.66f};
 
   sf::VertexArray walls{sf::Lines};
   for (size_t i = 0; i < SCREEN_W; i++) {
