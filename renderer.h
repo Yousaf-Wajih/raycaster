@@ -18,7 +18,7 @@ public:
                   const Map &map);
 
 private:
-  sf::Texture wallTexture;
+  sf::Texture wallTexture, floorTexture;
 };
 
 #endif // !_RENDERER_H

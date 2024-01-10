@@ -4,6 +4,7 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
+#include <string>
 
 #include "map.h"
 #include "player.h"
@@ -37,5 +38,7 @@ int main() {
     window.clear();
     renderer.draw3dView(window, player, map);
     window.display();
+
+    window.setTitle("Raycaster | " + std::to_string(1.0f / deltaTime));
   }
 }
