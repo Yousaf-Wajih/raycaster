@@ -1,13 +1,16 @@
 #include "renderer.h"
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 
 constexpr float PI = 3.141592653589793f;
@@ -24,11 +27,11 @@ void Renderer::init() {
     std::cerr << "ERROR: Texture is not square\n";
   }
 
-  if (!floorTexture.loadFromFile("floor_texture.png")) {
+  if (!floorImage.loadFromFile("floor_texture.png")) {
     std::cerr << "Failed to load wall_texture.png!\n";
   }
 
-  if (floorTexture.getSize().x != floorTexture.getSize().y) {
+  if (floorImage.getSize().x != floorImage.getSize().y) {
     std::cerr << "ERROR: Texture is not square\n";
   }
 }
@@ -44,7 +47,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
   sf::Vector2f plane{-direction.y, direction.x * 0.66f};
   sf::Vector2f position = player.position / map.getCellSize();
 
-  sf::VertexArray floorPixels{sf::Points};
+  uint8_t floorPixels[(size_t)SCREEN_W * (size_t)SCREEN_H * 4]{};
   for (size_t y = SCREEN_H / 2; y < SCREEN_H; y++) {
     sf::Vector2f rayDirLeft{direction - plane}, rayDirRight{direction + plane};
     float rowDistance = CAMERA_Z / ((float)y - SCREEN_H / 2);
@@ -56,13 +59,27 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
     for (size_t x = 0; x < SCREEN_W; x++) {
       sf::Vector2i cell{floor};
 
-      float textureSize = floorTexture.getSize().x;
-      sf::Vector2f texCoords{textureSize * (floor - (sf::Vector2f)cell)};
+      float textureSize = floorImage.getSize().x;
+      sf::Vector2i texCoords{textureSize * (floor - (sf::Vector2f)cell)};
+      texCoords.x &= (int)textureSize - 1;
+      texCoords.y &= (int)textureSize - 1;
 
-      floorPixels.append(sf::Vertex(sf::Vector2f(x, y), texCoords));
+      sf::Color color = floorImage.getPixel(texCoords.x, texCoords.y);
+      floorPixels[(x + y * (size_t)SCREEN_W) * 4 + 0] = color.r;
+      floorPixels[(x + y * (size_t)SCREEN_W) * 4 + 1] = color.g;
+      floorPixels[(x + y * (size_t)SCREEN_W) * 4 + 2] = color.b;
+      floorPixels[(x + y * (size_t)SCREEN_W) * 4 + 3] = color.a;
+
       floor += floorStep;
     }
   }
+
+  sf::Image image;
+  image.create(SCREEN_W, SCREEN_H, floorPixels);
+  sf::Texture texture;
+  texture.loadFromImage(image);
+  sf::Sprite sprite{texture};
+  target.draw(sprite);
 
   sf::VertexArray walls{sf::Lines};
   for (size_t i = 0; i < SCREEN_W; i++) {
@@ -149,9 +166,6 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
     }
   }
 
-  sf::RenderStates states{&floorTexture};
-  target.draw(floorPixels, states);
-
-  states.texture = &wallTexture;
+  sf::RenderStates states{&wallTexture};
   target.draw(walls, states);
 }
