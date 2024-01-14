@@ -1,9 +1,11 @@
 #include "renderer.h"
+#include "player.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Vertex.hpp>
@@ -19,33 +21,50 @@ constexpr float CAMERA_Z = 0.5f * SCREEN_H;
 constexpr size_t MAX_RAYCAST_DEPTH = 64;
 
 void Renderer::init() {
+  if (!skyTexture.loadFromFile("sky_texture.png")) {
+    std::cerr << "Failed to load sky_texture.png!\n";
+  }
+  skyTexture.setRepeated(true);
+
   if (!wallTexture.loadFromFile("wall_texture.png")) {
     std::cerr << "Failed to load wall_texture.png!\n";
   }
 
   if (wallTexture.getSize().x != wallTexture.getSize().y) {
-    std::cerr << "ERROR: Texture is not square\n";
+    std::cerr << "ERROR: Texture wall_texture.png is not square\n";
   }
 
   if (!floorImage.loadFromFile("floor_texture.png")) {
-    std::cerr << "Failed to load wall_texture.png!\n";
+    std::cerr << "Failed to load floor_texture.png!\n";
   }
 
   if (floorImage.getSize().x != floorImage.getSize().y) {
-    std::cerr << "ERROR: Texture is not square\n";
+    std::cerr << "ERROR: Texture floor_texture.png is not square\n";
   }
 }
 
 void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
                           const Map &map) {
-  sf::RectangleShape rectangle(sf::Vector2f(SCREEN_W, SCREEN_H / 2.0f));
-  rectangle.setFillColor(sf::Color(100, 170, 250));
-  target.draw(rectangle);
-
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane{-direction.y, direction.x * 0.66f};
   sf::Vector2f position = player.position / map.getCellSize();
+
+  int xOffset = SCREEN_W / PLAYER_TURN_SPEED * player.angle;
+  while (xOffset < 0) {
+    xOffset += skyTexture.getSize().x;
+  }
+  sf::Vertex sky[] = {
+      sf::Vertex(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(xOffset, 0.0f)),
+      sf::Vertex(sf::Vector2f(0.0f, SCREEN_H),
+                 sf::Vector2f(xOffset, skyTexture.getSize().y)),
+      sf::Vertex(sf::Vector2f(SCREEN_W, SCREEN_H),
+                 sf::Vector2f(xOffset + skyTexture.getSize().x,
+                              skyTexture.getSize().y)),
+      sf::Vertex(sf::Vector2f(SCREEN_W, 0.0f),
+                 sf::Vector2f(xOffset + skyTexture.getSize().x, 0.0f)),
+  };
+  target.draw(sky, 4, sf::Quads, sf::RenderStates(&skyTexture));
 
   uint8_t floorPixels[(size_t)SCREEN_W * (size_t)SCREEN_H * 4]{};
   for (size_t y = SCREEN_H / 2; y < SCREEN_H; y++) {

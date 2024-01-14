@@ -9,8 +9,8 @@
 #include "map.h"
 #include "player.h"
 
-constexpr float SCREEN_W = 900.0f;
-constexpr float SCREEN_H = 498.0f;
+constexpr float SCREEN_W = 960.0f;
+constexpr float SCREEN_H = 540.0f;
 
 class Renderer {
 public:
@@ -19,7 +19,7 @@ public:
                   const Map &map);
 
 private:
-  sf::Texture wallTexture;
+  sf::Texture wallTexture, skyTexture;
   sf::Image floorImage;
 };
 

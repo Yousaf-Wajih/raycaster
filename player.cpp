@@ -8,7 +8,7 @@
 #include <cmath>
 
 constexpr float PI = 3.141592653589793f;
-constexpr float TURN_SPEED = 100.0f;
+constexpr float TURN_SPEED = PLAYER_TURN_SPEED;
 constexpr float MOVE_SPEED = 100.0f;
 
 void Player::draw(sf::RenderTarget &target) {
