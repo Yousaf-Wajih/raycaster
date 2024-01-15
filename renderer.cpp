@@ -21,6 +21,9 @@ constexpr float CAMERA_Z = 0.5f * SCREEN_H;
 constexpr size_t MAX_RAYCAST_DEPTH = 64;
 
 void Renderer::init() {
+  floorBuffer.create(SCREEN_W, SCREEN_H);
+  floorBufferSprite.setTexture(floorBuffer);
+
   if (!skyTexture.loadFromFile("sky_texture.png")) {
     std::cerr << "Failed to load sky_texture.png!\n";
   }
@@ -93,12 +96,8 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
     }
   }
 
-  sf::Image image;
-  image.create(SCREEN_W, SCREEN_H, floorPixels);
-  sf::Texture texture;
-  texture.loadFromImage(image);
-  sf::Sprite sprite{texture};
-  target.draw(sprite);
+  floorBuffer.update(floorPixels);
+  target.draw(floorBufferSprite);
 
   sf::VertexArray walls{sf::Lines};
   for (size_t i = 0; i < SCREEN_W; i++) {
@@ -148,7 +147,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       const auto &grid = map.getGrid();
 
       if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size() &&
-          grid[y][x] != sf::Color::Black) {
+          grid[y][x]) {
         didHit = true;
       }
 

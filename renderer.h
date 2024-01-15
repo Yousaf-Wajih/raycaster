@@ -21,6 +21,9 @@ public:
 private:
   sf::Texture wallTexture, skyTexture;
   sf::Image floorImage;
+
+  sf::Texture floorBuffer;
+  sf::Sprite floorBufferSprite;
 };
 
 #endif // !_RENDERER_H
