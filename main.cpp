@@ -7,6 +7,7 @@
 #include <SFML/Window/WindowStyle.hpp>
 #include <string>
 
+#include "editor.h"
 #include "map.h"
 #include "player.h"
 #include "renderer.h"
@@ -24,6 +25,9 @@ int main() {
   Renderer renderer{};
   renderer.init();
 
+  Editor editor{};
+  editor.init(window);
+
   enum class State { Editor, Game } state = State::Game;
 
   sf::Clock gameClock;
@@ -38,13 +42,19 @@ int main() {
                  event.key.code == sf::Keyboard::Escape) {
         state = state == State::Game ? State::Editor : State::Game;
       }
+
+      if (state == State::Editor) {
+        editor.handleEvent(event);
+      }
     }
 
     window.clear();
     if (state == State::Game) {
+      window.setView(window.getDefaultView());
       player.update(deltaTime);
       renderer.draw3dView(window, player, map);
     } else {
+      editor.run(window);
       map.draw(window);
     }
     window.display();
