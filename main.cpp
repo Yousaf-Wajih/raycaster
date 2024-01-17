@@ -54,7 +54,7 @@ int main() {
       player.update(deltaTime);
       renderer.draw3dView(window, player, map);
     } else {
-      editor.run(window);
+      editor.run(window, map);
       map.draw(window);
     }
     window.display();

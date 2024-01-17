@@ -14,6 +14,7 @@ public:
   Map(float cellSize, const std::string &filename);
 
   void draw(sf::RenderTarget &target);
+  void setMapCell(int x, int y, int value);
 
   const MapGrid &getGrid() const;
   float getCellSize() const;

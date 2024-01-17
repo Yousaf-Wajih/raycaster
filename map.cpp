@@ -46,5 +46,11 @@ void Map::draw(sf::RenderTarget &target) {
   }
 }
 
+void Map::setMapCell(int x, int y, int value) {
+  if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
+    grid[y][x] = value;
+  }
+}
+
 const MapGrid &Map::getGrid() const { return grid; }
 float Map::getCellSize() const { return cellSize; }
