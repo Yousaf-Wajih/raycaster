@@ -1,13 +1,17 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
+#include <SFML/System/Time.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
+#include <iostream>
 #include <string>
 
 #include "editor.h"
+#include "imgui-SFML.h"
+#include "imgui.h"
 #include "map.h"
 #include "player.h"
 #include "renderer.h"
@@ -16,6 +20,11 @@ int main() {
   sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H), "Raycaster",
                           sf::Style::Close | sf::Style::Titlebar);
   window.setVerticalSyncEnabled(true);
+
+  if (!ImGui::SFML::Init(window)) {
+    std::cerr << "Failed to init ImGui\n";
+    return 1;
+  }
 
   Map map(48.0f, "map.png");
 
@@ -32,7 +41,8 @@ int main() {
 
   sf::Clock gameClock;
   while (window.isOpen()) {
-    float deltaTime = gameClock.restart().asSeconds();
+    sf::Time deltaTime = gameClock.restart();
+    ImGui::SFML::Update(window, deltaTime);
 
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -46,19 +56,28 @@ int main() {
       if (state == State::Editor) {
         editor.handleEvent(event);
       }
+
+      ImGui::SFML::ProcessEvent(window, event);
     }
+
+    ImGui::ShowDemoWindow();
 
     window.clear();
     if (state == State::Game) {
       window.setView(window.getDefaultView());
-      player.update(deltaTime);
+      player.update(deltaTime.asSeconds());
       renderer.draw3dView(window, player, map);
     } else {
       editor.run(window, map);
       map.draw(window);
     }
+
+    ImGui::SFML::Render(window);
     window.display();
 
-    window.setTitle("Raycaster | " + std::to_string(1.0f / deltaTime));
+    window.setTitle("Raycaster | " +
+                    std::to_string(1.0f / deltaTime.asSeconds()));
   }
+
+  ImGui::SFML::Shutdown();
 }

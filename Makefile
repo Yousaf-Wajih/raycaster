@@ -1,6 +1,6 @@
 CC = g++
 C_FLAGS = -MMD -MP -O3
-L_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+L_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lGL
 
 BIN = raycaster
 BUILD_DIR = ./build
