@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "player.h"
+#include "resources.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
@@ -28,14 +29,6 @@ void Renderer::init() {
     std::cerr << "Failed to load sky_texture.png!\n";
   }
   skyTexture.setRepeated(true);
-
-  if (!wallTexture.loadFromFile("wall_texture.png")) {
-    std::cerr << "Failed to load wall_texture.png!\n";
-  }
-
-  if (wallTexture.getSize().x != wallTexture.getSize().y) {
-    std::cerr << "ERROR: Texture wall_texture.png is not square\n";
-  }
 
   if (!floorImage.loadFromFile("floor_texture.png")) {
     std::cerr << "Failed to load floor_texture.png!\n";
@@ -130,9 +123,9 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       sideDist.y = (mapPos.y - rayPos.y + 1.0f) * deltaDist.y;
     }
 
-    bool didHit{}, isHitVertical{};
+    int hit{}, isHitVertical{};
     size_t depth = 0;
-    while (!didHit && depth < MAX_RAYCAST_DEPTH) {
+    while (hit == 0 && depth < MAX_RAYCAST_DEPTH) {
       if (sideDist.x < sideDist.y) {
         sideDist.x += deltaDist.x;
         mapPos.x += step.x;
@@ -146,15 +139,14 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       int x = mapPos.x, y = mapPos.y;
       const auto &grid = map.getGrid();
 
-      if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size() &&
-          grid[y][x]) {
-        didHit = true;
+      if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
+        hit = grid[y][x];
       }
 
       depth++;
     }
 
-    if (didHit) {
+    if (hit > 0) {
       float perpWallDist =
           isHitVertical ? sideDist.y - deltaDist.y : sideDist.x - deltaDist.x;
       float wallHeight = SCREEN_H / perpWallDist;
@@ -162,7 +154,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       float wallStart = (-wallHeight + SCREEN_H) / 2.0f;
       float wallEnd = (wallHeight + SCREEN_H) / 2.0f;
 
-      float textureSize = wallTexture.getSize().x;
+      float textureSize = Resources::wallTexture.getSize().y;
 
       float wallX = isHitVertical ? rayPos.x + perpWallDist * rayDir.x
                                   : rayPos.y + perpWallDist * rayDir.y;
@@ -177,13 +169,15 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       sf::Color color =
           sf::Color(255 * brightness, 255 * brightness, 255 * brightness);
 
-      walls.append(sf::Vertex(sf::Vector2f((float)i, wallStart), color,
-                              sf::Vector2f(textureX, 0.0f)));
-      walls.append(sf::Vertex(sf::Vector2f((float)i, wallEnd), color,
-                              sf::Vector2f(textureX, textureSize)));
+      walls.append(
+          sf::Vertex(sf::Vector2f((float)i, wallStart), color,
+                     sf::Vector2f(textureX + (hit - 1) * textureSize, 0.0f)));
+      walls.append(sf::Vertex(
+          sf::Vector2f((float)i, wallEnd), color,
+          sf::Vector2f(textureX + (hit - 1) * textureSize, textureSize)));
     }
   }
 
-  sf::RenderStates states{&wallTexture};
+  sf::RenderStates states{&Resources::wallTexture};
   target.draw(walls, states);
 }

@@ -1,9 +1,12 @@
 #include "map.h"
+#include "resources.h"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cstddef>
 #include <fstream>
@@ -38,14 +41,27 @@ void Map::draw(sf::RenderTarget &target) {
     return;
   }
 
+  int textureSize = Resources::wallTexture.getSize().y;
+  sf::Vector2f size{cellSize * 0.95f, cellSize * 0.95f};
+  sf::Sprite sprite{Resources::wallTexture,
+                    sf::IntRect(0, 0, textureSize, textureSize)};
+  sprite.setScale(size / (float)textureSize);
   sf::RectangleShape cell(sf::Vector2f(cellSize * 0.95f, cellSize * 0.95f));
 
   for (size_t y = 0; y < grid.size(); y++) {
     for (size_t x = 0; x < grid[y].size(); x++) {
-      cell.setFillColor(grid[y][x] ? sf::Color::White : sf::Color(70, 70, 70));
-      cell.setPosition(sf::Vector2f(x, y) * cellSize +
-                       sf::Vector2f(cellSize * 0.025f, cellSize * 0.025f));
-      target.draw(cell);
+      if (grid[y][x] > 0) {
+        sprite.setTextureRect(sf::IntRect((grid[y][x] - 1) * textureSize, 0,
+                                          textureSize, textureSize));
+        sprite.setPosition(sf::Vector2f(x, y) * cellSize +
+                           sf::Vector2f(cellSize * 0.025f, cellSize * 0.025f));
+        target.draw(sprite);
+      } else {
+        cell.setFillColor(sf::Color(70, 70, 70));
+        cell.setPosition(sf::Vector2f(x, y) * cellSize +
+                         sf::Vector2f(cellSize * 0.025f, cellSize * 0.025f));
+        target.draw(cell);
+      }
     }
   }
 }

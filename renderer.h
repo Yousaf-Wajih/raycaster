@@ -19,7 +19,7 @@ public:
                   const Map &map);
 
 private:
-  sf::Texture wallTexture, skyTexture;
+  sf::Texture skyTexture;
   sf::Image floorImage;
 
   sf::Texture floorBuffer;

@@ -14,6 +14,7 @@
 #include "map.h"
 #include "player.h"
 #include "renderer.h"
+#include "resources.h"
 
 int main() {
   sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H), "Raycaster",
@@ -27,6 +28,10 @@ int main() {
 
   Map map{48.0f};
   map.load("test.map");
+
+  if (!Resources::wallTexture.loadFromFile("wall_textures.png")) {
+    std::cerr << "Failed to load wall_textures.png!\n";
+  }
 
   Player player{};
   player.position = sf::Vector2f(50, 50);
