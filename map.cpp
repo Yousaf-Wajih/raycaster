@@ -6,9 +6,13 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cstddef>
+#include <fstream>
+#include <ios>
 #include <iostream>
 #include <string>
 #include <vector>
+
+Map::Map(float cellSize) : cellSize(cellSize), grid() {}
 
 Map::Map(float cellSize, int width, int height)
     : cellSize(cellSize), grid(height, std::vector(width, 0)) {}
@@ -49,6 +53,47 @@ void Map::draw(sf::RenderTarget &target) {
 void Map::setMapCell(int x, int y, int value) {
   if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size()) {
     grid[y][x] = value;
+  }
+}
+
+void Map::load(const std::filesystem::path &path) {
+  std::ifstream in{path, std::ios::in | std::ios::binary};
+  if (!in.is_open()) {
+    std::cerr << "Failed to open file \"" << path << "\" for input\n";
+  }
+
+  size_t w, h;
+  in.read(reinterpret_cast<char *>(&w), sizeof(w));
+  in.read(reinterpret_cast<char *>(&h), sizeof(h));
+
+  grid = std::vector(h, std::vector(w, 0));
+  for (size_t y = 0; y < grid.size(); y++) {
+    for (size_t x = 0; x < grid[y].size(); x++) {
+      in.read(reinterpret_cast<char *>(&grid[y][x]), sizeof(grid[y][x]));
+    }
+  }
+}
+
+void Map::save(const std::filesystem::path &path) {
+  std::ofstream out{path, std::ios::out | std::ios::binary};
+  if (!out.is_open()) {
+    std::cerr << "Failed to open file \"" << path << "\" for output\n";
+  }
+
+  if (grid.empty()) {
+    return;
+  }
+
+  size_t h = grid.size();
+  size_t w = grid[0].size();
+  out.write(reinterpret_cast<const char *>(&w), sizeof(w));
+  out.write(reinterpret_cast<const char *>(&h), sizeof(h));
+
+  for (size_t y = 0; y < grid.size(); y++) {
+    for (size_t x = 0; x < grid[y].size(); x++) {
+      out.write(reinterpret_cast<const char *>(&grid[y][x]),
+                sizeof(grid[y][x]));
+    }
   }
 }
 

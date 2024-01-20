@@ -1,4 +1,5 @@
 #include "editor.h"
+#include "imgui.h"
 #include "map.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -14,6 +15,18 @@ void Editor::init(sf::RenderWindow &window) {
 }
 
 void Editor::run(sf::RenderWindow &window, Map &map) {
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem("Save")) {
+        map.save("test.map");
+      }
+
+      ImGui::EndMenu();
+    }
+
+    ImGui::EndMainMenuBar();
+  }
+
   sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
   if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
@@ -32,15 +45,17 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
     window.setMouseCursorVisible(true);
   }
 
-  sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
-  sf::Vector2i mapPos = (sf::Vector2i)(worldPos / map.getCellSize());
-  cell.setSize(sf::Vector2f(map.getCellSize(), map.getCellSize()));
-  cell.setPosition((sf::Vector2f)mapPos * map.getCellSize());
-  window.draw(cell);
+  if (!ImGui::GetIO().WantCaptureMouse) {
+    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+    sf::Vector2i mapPos = (sf::Vector2i)(worldPos / map.getCellSize());
+    cell.setSize(sf::Vector2f(map.getCellSize(), map.getCellSize()));
+    cell.setPosition((sf::Vector2f)mapPos * map.getCellSize());
+    window.draw(cell);
 
-  if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-    map.setMapCell(mapPos.x, mapPos.y,
-                   sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ? 0 : 1);
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+      map.setMapCell(mapPos.x, mapPos.y,
+                     sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ? 0 : 1);
+    }
   }
 
   window.setView(view);

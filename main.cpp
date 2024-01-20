@@ -11,7 +11,6 @@
 
 #include "editor.h"
 #include "imgui-SFML.h"
-#include "imgui.h"
 #include "map.h"
 #include "player.h"
 #include "renderer.h"
@@ -26,7 +25,8 @@ int main() {
     return 1;
   }
 
-  Map map(48.0f, "map.png");
+  Map map{48.0f};
+  map.load("test.map");
 
   Player player{};
   player.position = sf::Vector2f(50, 50);
@@ -59,8 +59,6 @@ int main() {
 
       ImGui::SFML::ProcessEvent(window, event);
     }
-
-    ImGui::ShowDemoWindow();
 
     window.clear();
     if (state == State::Game) {
