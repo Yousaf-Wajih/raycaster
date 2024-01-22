@@ -27,7 +27,6 @@ int main() {
   }
 
   Map map{48.0f};
-  map.load("test.map");
 
   if (!Resources::wallTexture.loadFromFile("wall_textures.png")) {
     std::cerr << "Failed to load wall_textures.png!\n";
