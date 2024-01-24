@@ -25,6 +25,7 @@ private:
   sf::Vector2i lastMousePos;
   sf::View view;
   int textureNo;
+  int currentLayer;
 };
 
 #endif // !_EDITOR_H

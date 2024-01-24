@@ -71,7 +71,6 @@ int main() {
       renderer.draw3dView(window, player, map);
     } else {
       editor.run(window, map);
-      map.draw(window);
     }
 
     ImGui::SFML::Render(window);

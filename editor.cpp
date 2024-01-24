@@ -15,6 +15,7 @@
 #include <SFML/Window/Mouse.hpp>
 
 void Editor::init(sf::RenderWindow &window) {
+  currentLayer = Map::LAYER_WALLS;
   view = window.getView();
   cell.setFillColor(sf::Color::Green);
 }
@@ -105,11 +106,12 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
       map.setMapCell(
-          mapPos.x, mapPos.y,
+          mapPos.x, mapPos.y, currentLayer,
           sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ? 0 : textureNo + 1);
     }
   }
 
+  map.draw(window, currentLayer);
   window.setView(view);
 }
 
