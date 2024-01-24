@@ -20,10 +20,9 @@ public:
 
 private:
   sf::Texture skyTexture;
-  sf::Image floorImage;
 
-  sf::Texture floorBuffer;
-  sf::Sprite floorBufferSprite;
+  sf::Texture screenBuffer;
+  sf::Sprite screenBufferSprite;
 };
 
 #endif // !_RENDERER_H

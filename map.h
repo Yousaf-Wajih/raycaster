@@ -17,11 +17,18 @@ public:
   static constexpr int LAYER_CEILING = 2;
   static constexpr int NUM_LAYERS = 3;
 
+  static constexpr const char *LAYER_NAMES[NUM_LAYERS] = {
+      "Walls",
+      "Floor",
+      "Ceiling",
+  };
+
   Map(float cellSize);
 
   float getCellSize() const;
   int getMapCell(int x, int y, int layer) const;
   void setMapCell(int x, int y, int layer, int value);
+  void fill(int layer, int value);
 
   void draw(sf::RenderTarget &target, int layer) const;
   void load(const std::filesystem::path &path);

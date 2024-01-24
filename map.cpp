@@ -22,9 +22,9 @@ void Map::draw(sf::RenderTarget &target, int layer) const {
     return;
   }
 
-  int textureSize = Resources::wallTexture.getSize().y;
+  int textureSize = Resources::textures.getSize().y;
   sf::Vector2f size{cellSize * 0.95f, cellSize * 0.95f};
-  sf::Sprite sprite{Resources::wallTexture,
+  sf::Sprite sprite{Resources::textures,
                     sf::IntRect(0, 0, textureSize, textureSize)};
   sprite.setScale(size / (float)textureSize);
   sf::RectangleShape cell(sf::Vector2f(cellSize * 0.95f, cellSize * 0.95f));
@@ -58,7 +58,7 @@ int Map::getMapCell(int x, int y, int layer) const {
   }
 }
 
-void Map::setMapCell(int x, int y, int value, int layer) {
+void Map::setMapCell(int x, int y, int layer, int value) {
   if (layer < NUM_LAYERS && y >= 0 && y < grid.size() && x >= 0 &&
       x < grid[y].size()) {
     grid[y][x][layer] = value;
@@ -79,7 +79,7 @@ void Map::load(const std::filesystem::path &path) {
   for (size_t y = 0; y < grid.size(); y++) {
     for (size_t x = 0; x < grid[y].size(); x++) {
       in.read(reinterpret_cast<char *>(grid[y][x].data()),
-              sizeof(grid[y][x][0] * NUM_LAYERS));
+              sizeof(grid[y][x][0]) * NUM_LAYERS);
     }
   }
 }
@@ -102,7 +102,16 @@ void Map::save(const std::filesystem::path &path) const {
   for (size_t y = 0; y < grid.size(); y++) {
     for (size_t x = 0; x < grid[y].size(); x++) {
       out.write(reinterpret_cast<const char *>(grid[y][x].data()),
-                sizeof(grid[y][x][0] * NUM_LAYERS));
+                sizeof(grid[y][x][0]) * NUM_LAYERS);
+    }
+  }
+}
+void Map::fill(int layer, int value) {
+  if (layer < NUM_LAYERS) {
+    for (auto &column : grid) {
+      for (auto &cell : column) {
+        cell[layer] = value;
+      }
     }
   }
 }

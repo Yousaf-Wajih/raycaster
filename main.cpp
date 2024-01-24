@@ -28,9 +28,10 @@ int main() {
 
   Map map{48.0f};
 
-  if (!Resources::wallTexture.loadFromFile("wall_textures.png")) {
-    std::cerr << "Failed to load wall_textures.png!\n";
+  if (!Resources::texturesImage.loadFromFile("textures.png")) {
+    std::cerr << "Failed to load textures.png!\n";
   }
+  Resources::textures.loadFromImage(Resources::texturesImage);
 
   Player player{};
   player.position = sf::Vector2f(50, 50);

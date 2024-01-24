@@ -1,4 +1,6 @@
 #include "resources.h"
+#include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
-sf::Texture Resources::wallTexture{};
+sf::Image Resources::texturesImage{};
+sf::Texture Resources::textures{};
