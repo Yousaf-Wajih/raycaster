@@ -13,6 +13,7 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
+#include <algorithm>
 #include <cstddef>
 
 void Editor::init(sf::RenderWindow &window) {
@@ -96,6 +97,32 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
   ImGui::SameLine();
   if (ImGui::Button("Clear")) {
     map.fill(currentLayer, 0);
+  }
+
+  static int newSize[2];
+  if (ImGui::Button("Resize")) {
+    newSize[0] = map.getWidth();
+    newSize[1] = map.getHeight();
+    ImGui::OpenPopup("Resize");
+  }
+
+  if (ImGui::BeginPopupModal("Resize")) {
+    ImGui::Text("New Size:");
+    ImGui::InputInt2("##newSize", newSize);
+    newSize[0] = std::max(0, newSize[0]);
+    newSize[1] = std::max(0, newSize[1]);
+
+    if (ImGui::Button("OK")) {
+      map.resize(newSize[0], newSize[1]);
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
   }
 
   ImGui::End();

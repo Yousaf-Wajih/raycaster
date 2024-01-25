@@ -16,7 +16,7 @@
 #include "renderer.h"
 #include "resources.h"
 
-int main() {
+int main(int argc, const char **argv) {
   sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H), "Raycaster",
                           sf::Style::Close | sf::Style::Titlebar);
   window.setVerticalSyncEnabled(true);
@@ -25,8 +25,6 @@ int main() {
     std::cerr << "Failed to init ImGui\n";
     return 1;
   }
-
-  Map map{48.0f};
 
   if (!Resources::texturesImage.loadFromFile("textures.png")) {
     std::cerr << "Failed to load textures.png!\n";
@@ -41,6 +39,12 @@ int main() {
 
   Editor editor{};
   editor.init(window);
+
+  Map map{48.0f};
+  if (argc > 1) {
+    editor.savedFileName = argv[1];
+    map.load(editor.savedFileName);
+  }
 
   enum class State { Editor, Game } state = State::Game;
 

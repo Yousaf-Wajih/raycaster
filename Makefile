@@ -4,6 +4,7 @@ L_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system -lGL
 
 BIN = raycaster
 BUILD_DIR = ./build
+ARGS = test.map
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
@@ -12,7 +13,7 @@ DEPS = $(OBJS:%.o=%.d)
 all: run
 
 run: $(BUILD_DIR)/$(BIN)
-	$(BUILD_DIR)/$(BIN)
+	$(BUILD_DIR)/$(BIN) $(ARGS)
 
 $(BUILD_DIR)/$(BIN): $(OBJS)
 	$(CC) $^ -o $@ $(L_FLAGS)

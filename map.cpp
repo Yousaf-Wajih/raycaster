@@ -106,6 +106,7 @@ void Map::save(const std::filesystem::path &path) const {
     }
   }
 }
+
 void Map::fill(int layer, int value) {
   if (layer < NUM_LAYERS) {
     for (auto &column : grid) {
@@ -113,5 +114,15 @@ void Map::fill(int layer, int value) {
         cell[layer] = value;
       }
     }
+  }
+}
+
+size_t Map::getWidth() { return grid[0].size(); }
+size_t Map::getHeight() { return grid.size(); }
+
+void Map::resize(size_t width, size_t height) {
+  grid.resize(height);
+  for (auto &column : grid) {
+    column.resize(width);
   }
 }
