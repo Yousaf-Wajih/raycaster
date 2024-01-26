@@ -32,7 +32,7 @@ int main(int argc, const char **argv) {
   Resources::textures.loadFromImage(Resources::texturesImage);
 
   Player player{};
-  player.position = sf::Vector2f(50, 50);
+  player.position = sf::Vector2f(1.2f, 1.2f);
 
   Renderer renderer{};
   renderer.init();
@@ -40,7 +40,7 @@ int main(int argc, const char **argv) {
   Editor editor{};
   editor.init(window);
 
-  Map map{48.0f};
+  Map map{};
   if (argc > 1) {
     editor.savedFileName = argv[1];
     map.load(editor.savedFileName);
@@ -72,7 +72,7 @@ int main(int argc, const char **argv) {
     window.clear();
     if (state == State::Game) {
       window.setView(window.getDefaultView());
-      player.update(deltaTime.asSeconds());
+      player.update(deltaTime.asSeconds(), map);
       renderer.draw3dView(window, player, map);
     } else {
       editor.run(window, map);

@@ -15,9 +15,7 @@
 #include <iostream>
 #include <vector>
 
-Map::Map(float cellSize) : cellSize(cellSize), grid() {}
-
-void Map::draw(sf::RenderTarget &target, int layer) const {
+void Map::draw(sf::RenderTarget &target, float cellSize, int layer) const {
   if (grid.empty()) {
     return;
   }
@@ -46,8 +44,6 @@ void Map::draw(sf::RenderTarget &target, int layer) const {
     }
   }
 }
-
-float Map::getCellSize() const { return cellSize; }
 
 int Map::getMapCell(int x, int y, int layer) const {
   if (layer < NUM_LAYERS && y >= 0 && y < grid.size() && x >= 0 &&

@@ -36,7 +36,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane{-direction.y, direction.x * 0.66f};
-  sf::Vector2f position = player.position / map.getCellSize();
+  sf::Vector2f position = player.position;
 
   int xOffset = SCREEN_W / PLAYER_TURN_SPEED * player.angle;
   while (xOffset < 0) {
