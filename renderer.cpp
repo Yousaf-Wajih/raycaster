@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "player.h"
 #include "resources.h"
+#include "sprite.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
@@ -10,11 +11,14 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Vertex.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <vector>
 
 constexpr float PI = 3.141592653589793f;
 constexpr float PLAYER_FOV = 60.0f;
@@ -32,7 +36,7 @@ void Renderer::init() {
 }
 
 void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
-                          const Map &map) {
+                          const Map &map, const std::vector<Sprite> &sprites) {
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane{-direction.y, direction.x * 0.66f};
@@ -184,9 +188,44 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       walls.append(sf::Vertex(
           sf::Vector2f((float)i, wallEnd), color,
           sf::Vector2f(textureX + (hit - 1) * textureSize, textureSize)));
+      zBuffer[i] = perpWallDist;
     }
   }
 
-  sf::RenderStates states{&Resources::textures};
-  target.draw(walls, states);
+  target.draw(walls, {&Resources::textures});
+
+  sf::VertexArray spriteColumns{sf::Lines};
+  for (const auto &sprite : sprites) {
+    sf::Vector2f spritePos = sprite.position - player.position;
+
+    // Inverse Camera Matrix:
+    // det = plane.x*dir.y - plane.y*dir.x
+    // [ plane.x dir.x ]-1 = 1/det * [ dir.y     -dir.x  ]
+    // [ plane.y dir.y ]             [ -plane.y  plane.x ]
+    // Transformed position:
+    // 1/det * [ dir.y     -dir.x  ][x] = 1/det * [ dir.y*x    - dir.x*y  ]
+    //         [ -plane.y  plane.x ][y]           [ -plane.y*x + plane.x*y]
+
+    float invDet = 1.0f / (plane.x * direction.y - plane.y * direction.x);
+    sf::Vector2f transformed{
+        invDet * (direction.y * spritePos.x - direction.x * spritePos.y),
+        invDet * (-plane.y * spritePos.x + plane.x * spritePos.y),
+    };
+
+    int screenX = SCREEN_W / 2 * (1 + transformed.x / transformed.y);
+    int spriteSize = std::abs(SCREEN_H / transformed.y);
+    int drawStart = std::max(-spriteSize / 2 + screenX, 0);
+    int drawEnd = std::min(spriteSize / 2 + screenX, (int)SCREEN_W - 1);
+
+    for (int i = drawStart; i < drawEnd; i++) {
+      if (transformed.y > 0.0f && transformed.y < zBuffer[i]) {
+        spriteColumns.append(
+            sf::Vertex({(float)i, -spriteSize / 2.0f + SCREEN_H / 2.0f}));
+        spriteColumns.append(
+            sf::Vertex({(float)i, spriteSize / 2.0f + SCREEN_H / 2.0f}));
+      }
+    }
+  }
+
+  target.draw(spriteColumns);
 }

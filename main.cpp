@@ -8,6 +8,7 @@
 #include <SFML/Window/WindowStyle.hpp>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "editor.h"
 #include "imgui-SFML.h"
@@ -15,6 +16,7 @@
 #include "player.h"
 #include "renderer.h"
 #include "resources.h"
+#include "sprite.h"
 
 int main(int argc, const char **argv) {
   sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H), "Raycaster",
@@ -46,6 +48,10 @@ int main(int argc, const char **argv) {
     map.load(editor.savedFileName);
   }
 
+  std::vector<Sprite> sprites = {
+      {{2.5f, 2.5f}},
+  };
+
   enum class State { Editor, Game } state = State::Game;
 
   sf::Clock gameClock;
@@ -73,7 +79,7 @@ int main(int argc, const char **argv) {
     if (state == State::Game) {
       window.setView(window.getDefaultView());
       player.update(deltaTime.asSeconds(), map);
-      renderer.draw3dView(window, player, map);
+      renderer.draw3dView(window, player, map, sprites);
     } else {
       editor.run(window, map);
     }
