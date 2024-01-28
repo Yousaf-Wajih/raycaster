@@ -8,6 +8,7 @@ class Resources {
 public:
   static sf::Image texturesImage;
   static sf::Texture textures;
+  static sf::Texture sprites;
 };
 
 #endif // !_RESOURCES_H
