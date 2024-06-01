@@ -14,6 +14,9 @@ public:
 
   sf::Vector2f position;
   float angle;
+
+private:
+  bool checkMapCollision(const Map &map, sf::Vector2f newPosition, bool xAxis);
 };
 
 #endif // !_PLAYER_H

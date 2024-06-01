@@ -39,7 +39,7 @@ int main(int argc, const char **argv) {
   }
 
   Player player{};
-  player.position = sf::Vector2f(1.2f, 1.2f);
+  player.position = sf::Vector2f(2.2f, 2.2f);
 
   Renderer renderer{};
   renderer.init();
