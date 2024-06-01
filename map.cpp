@@ -113,7 +113,7 @@ void Map::fill(int layer, int value) {
   }
 }
 
-size_t Map::getWidth() { return grid[0].size(); }
+size_t Map::getWidth() { return grid.empty() ? 0 : grid[0].size(); }
 size_t Map::getHeight() { return grid.size(); }
 
 void Map::resize(size_t width, size_t height) {

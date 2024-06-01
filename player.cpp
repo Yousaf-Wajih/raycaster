@@ -13,14 +13,15 @@ constexpr float TURN_SPEED = PLAYER_TURN_SPEED;
 constexpr float MOVE_SPEED = 2.5f;
 constexpr float PLAYER_SIZE = 0.1f;
 
-void Player::draw(sf::RenderTarget &target) {
-  sf::CircleShape circle(8.0f);
+void Player::draw(sf::RenderTarget &target, float cellSize) {
+  float size = PLAYER_SIZE * cellSize;
+  sf::CircleShape circle(size);
   circle.setOrigin(circle.getRadius(), circle.getRadius());
-  circle.setPosition(position);
+  circle.setPosition(position * cellSize);
   circle.setFillColor(sf::Color::Yellow);
 
-  sf::RectangleShape line(sf::Vector2f(24.0f, 2.0f));
-  line.setPosition(position);
+  sf::RectangleShape line(sf::Vector2f(size * 3.f, cellSize / 30.f));
+  line.setPosition(position * cellSize);
   line.setRotation(angle);
   line.setFillColor(sf::Color::Yellow);
 

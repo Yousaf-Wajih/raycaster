@@ -1,4 +1,5 @@
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/View.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Time.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -59,6 +60,8 @@ int main(int argc, const char **argv) {
   };
 
   enum class State { Editor, Game } state = State::Game;
+  bool view2d = false;
+  float gridSize2d = 64.f;
 
   sf::Clock gameClock;
   while (window.isOpen()) {
@@ -69,9 +72,14 @@ int main(int argc, const char **argv) {
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
         window.close();
-      } else if (event.type == sf::Event::KeyPressed &&
-                 event.key.code == sf::Keyboard::Escape) {
-        state = state == State::Game ? State::Editor : State::Game;
+      } else if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::Escape) {
+          state = state == State::Game ? State::Editor : State::Game;
+        }
+
+        if (event.key.code == sf::Keyboard::Tab) {
+          view2d = !view2d;
+        }
       }
 
       if (state == State::Editor) {
@@ -83,9 +91,17 @@ int main(int argc, const char **argv) {
 
     window.clear();
     if (state == State::Game) {
-      window.setView(window.getDefaultView());
       player.update(deltaTime.asSeconds(), map);
-      renderer.draw3dView(window, player, map, sprites);
+      if (view2d) {
+        sf::View view = window.getDefaultView();
+        view.setCenter(player.position * gridSize2d);
+        window.setView(view);
+        map.draw(window, gridSize2d, Map::LAYER_WALLS);
+        player.draw(window, gridSize2d);
+      } else {
+        window.setView(window.getDefaultView());
+        renderer.draw3dView(window, player, map, sprites);
+      }
     } else {
       editor.run(window, map);
     }

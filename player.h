@@ -9,7 +9,7 @@ constexpr float PLAYER_TURN_SPEED = 100.0f;
 
 class Player {
 public:
-  void draw(sf::RenderTarget &target);
+  void draw(sf::RenderTarget &target, float cellSize);
   void update(float deltaTime, const Map &map);
 
   sf::Vector2f position;
