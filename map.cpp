@@ -10,12 +10,14 @@
 #include <SFML/System/Vector2.hpp>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <ios>
 #include <iostream>
 #include <vector>
 
-void Map::draw(sf::RenderTarget &target, float cellSize, int layer) const {
+void Map::draw(sf::RenderTarget &target, float cellSize, int layer,
+               uint8_t alpha) const {
   if (grid.empty()) { return; }
 
   int textureSize = Resources::textures.getSize().y;
@@ -32,8 +34,9 @@ void Map::draw(sf::RenderTarget &target, float cellSize, int layer) const {
                                           0, textureSize, textureSize));
         sprite.setPosition(sf::Vector2f(x, y) * cellSize +
                            sf::Vector2f(cellSize * 0.025f, cellSize * 0.025f));
+        sprite.setColor(sf::Color(255, 255, 255, alpha));
         target.draw(sprite);
-      } else {
+      } else if (alpha == 255) {
         cell.setFillColor(sf::Color(70, 70, 70));
         cell.setPosition(sf::Vector2f(x, y) * cellSize +
                          sf::Vector2f(cellSize * 0.025f, cellSize * 0.025f));

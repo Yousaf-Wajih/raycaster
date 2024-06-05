@@ -5,7 +5,7 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Vector2.hpp>
 
-constexpr float PLAYER_TURN_SPEED = 100.0f;
+constexpr float PLAYER_TURN_SPEED = 150.f;
 
 class Player {
 public:

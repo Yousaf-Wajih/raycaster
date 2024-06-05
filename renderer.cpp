@@ -20,6 +20,7 @@
 #include <iostream>
 #include <vector>
 
+constexpr float ASPECT = SCREEN_W / SCREEN_H;
 constexpr float PI = 3.141592653589793f;
 constexpr float PLAYER_FOV = 60.0f;
 constexpr float CAMERA_Z = 0.5f * SCREEN_H;
@@ -39,7 +40,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
                           const Map &map, std::vector<Sprite> &sprites) {
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
-  sf::Vector2f plane{-direction.y, direction.x * 0.66f};
+  sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * ASPECT * .5f;
   sf::Vector2f position = player.position;
 
   int xOffset = SCREEN_W / PLAYER_TURN_SPEED * player.angle;

@@ -92,14 +92,10 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
       },
       sf::Vector2f(100.f, 100.f));
 
-  if (ImGui::Button("Fill")) {
-    map.fill(currentLayer, textureNo + 1);
-  }
+  if (ImGui::Button("Fill")) { map.fill(currentLayer, textureNo + 1); }
 
   ImGui::SameLine();
-  if (ImGui::Button("Clear")) {
-    map.fill(currentLayer, 0);
-  }
+  if (ImGui::Button("Clear")) { map.fill(currentLayer, 0); }
 
   static int newSize[2];
   if (ImGui::Button("Resize")) {
@@ -120,9 +116,7 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Cancel")) {
-      ImGui::CloseCurrentPopup();
-    }
+    if (ImGui::Button("Cancel")) { ImGui::CloseCurrentPopup(); }
 
     ImGui::EndPopup();
   }
@@ -162,6 +156,10 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
   }
 
   map.draw(window, CELL_SIZE, currentLayer);
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+    map.draw(window, CELL_SIZE, Map::LAYER_WALLS, 180);
+  }
+
   window.setView(view);
 }
 

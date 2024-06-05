@@ -5,6 +5,7 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <unordered_map>
@@ -32,7 +33,8 @@ public:
   size_t getHeight() const;
   void resize(size_t width, size_t height);
 
-  void draw(sf::RenderTarget &target, float cellSize, int layer) const;
+  void draw(sf::RenderTarget &target, float cellSize, int layer,
+            uint8_t alpha = 255) const;
   void load(const std::filesystem::path &path);
   void save(const std::filesystem::path &path) const;
 
