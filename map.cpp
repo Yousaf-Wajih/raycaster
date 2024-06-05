@@ -16,9 +16,7 @@
 #include <vector>
 
 void Map::draw(sf::RenderTarget &target, float cellSize, int layer) const {
-  if (grid.empty()) {
-    return;
-  }
+  if (grid.empty()) { return; }
 
   int textureSize = Resources::textures.getSize().y;
   sf::Vector2f size{cellSize * 0.95f, cellSize * 0.95f};
@@ -86,9 +84,7 @@ void Map::save(const std::filesystem::path &path) const {
     std::cerr << "Failed to open file \"" << path << "\" for output\n";
   }
 
-  if (grid.empty()) {
-    return;
-  }
+  if (grid.empty()) { return; }
 
   size_t h = grid.size();
   size_t w = grid[0].size();
@@ -113,8 +109,8 @@ void Map::fill(int layer, int value) {
   }
 }
 
-size_t Map::getWidth() { return grid.empty() ? 0 : grid[0].size(); }
-size_t Map::getHeight() { return grid.size(); }
+size_t Map::getWidth() const { return grid.empty() ? 0 : grid[0].size(); }
+size_t Map::getHeight() const { return grid.size(); }
 
 void Map::resize(size_t width, size_t height) {
   grid.resize(height);

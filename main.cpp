@@ -77,14 +77,10 @@ int main(int argc, const char **argv) {
           state = state == State::Game ? State::Editor : State::Game;
         }
 
-        if (event.key.code == sf::Keyboard::Tab) {
-          view2d = !view2d;
-        }
+        if (event.key.code == sf::Keyboard::Tab) { view2d = !view2d; }
       }
 
-      if (state == State::Editor) {
-        editor.handleEvent(event);
-      }
+      if (state == State::Editor) { editor.handleEvent(event); }
 
       ImGui::SFML::ProcessEvent(window, event);
     }

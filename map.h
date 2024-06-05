@@ -28,8 +28,8 @@ public:
   int getMapCell(int x, int y, int layer) const;
   void setMapCell(int x, int y, int layer, int value);
   void fill(int layer, int value);
-  size_t getWidth();
-  size_t getHeight();
+  size_t getWidth() const;
+  size_t getHeight() const;
   void resize(size_t width, size_t height);
 
   void draw(sf::RenderTarget &target, float cellSize, int layer) const;

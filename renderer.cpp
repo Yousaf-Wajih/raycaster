@@ -90,19 +90,20 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
         ceilingColor = Resources::texturesImage.getPixel(
             (ceilTex - 1) * textureSize + texCoords.x, texCoords.y);
       }
-      screenPixels[(x + y * (size_t)SCREEN_W) * 4 + 0] = floorColor.r;
-      screenPixels[(x + y * (size_t)SCREEN_W) * 4 + 1] = floorColor.g;
-      screenPixels[(x + y * (size_t)SCREEN_W) * 4 + 2] = floorColor.b;
-      screenPixels[(x + y * (size_t)SCREEN_W) * 4 + 3] = floorColor.a;
 
-      screenPixels[(x + ((size_t)SCREEN_H - y - 1) * (size_t)SCREEN_W) * 4 +
-                   0] = ceilingColor.r;
-      screenPixels[(x + ((size_t)SCREEN_H - y - 1) * (size_t)SCREEN_W) * 4 +
-                   1] = ceilingColor.g;
-      screenPixels[(x + ((size_t)SCREEN_H - y - 1) * (size_t)SCREEN_W) * 4 +
-                   2] = ceilingColor.b;
-      screenPixels[(x + ((size_t)SCREEN_H - y - 1) * (size_t)SCREEN_W) * 4 +
-                   3] = ceilingColor.a;
+      size_t w = SCREEN_W, h = SCREEN_H;
+      size_t floorPixel = (x + y * w) * 4;
+      size_t ceilPixel = (x + (h - y - 1) * w) * 4;
+
+      screenPixels[floorPixel + 0] = floorColor.r;
+      screenPixels[floorPixel + 1] = floorColor.g;
+      screenPixels[floorPixel + 2] = floorColor.b;
+      screenPixels[floorPixel + 3] = floorColor.a;
+
+      screenPixels[ceilPixel + 0] = ceilingColor.r;
+      screenPixels[ceilPixel + 1] = ceilingColor.g;
+      screenPixels[ceilPixel + 2] = ceilingColor.b;
+      screenPixels[ceilPixel + 3] = ceilingColor.a;
 
       floor += floorStep;
     }
@@ -175,9 +176,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       float textureX = wallX * textureSize;
 
       float brightness = 1.0f - (perpWallDist / (float)MAX_RAYCAST_DEPTH);
-      if (isHitVertical) {
-        brightness *= 0.7f;
-      }
+      if (isHitVertical) { brightness *= 0.7f; }
 
       sf::Color color =
           sf::Color(255 * brightness, 255 * brightness, 255 * brightness);

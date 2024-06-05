@@ -71,15 +71,11 @@ bool Player::checkMapCollision(const Map &map, sf::Vector2f newPosition,
 
   if (xAxis) {
     for (int y = start.y; y <= end.y; y++) {
-      if (map.getMapCell(newPosition.x, y, Map::LAYER_WALLS)) {
-        return true;
-      }
+      if (map.getMapCell(newPosition.x, y, Map::LAYER_WALLS)) { return true; }
     }
   } else {
     for (int x = start.x; x <= end.x; x++) {
-      if (map.getMapCell(x, newPosition.y, Map::LAYER_WALLS)) {
-        return true;
-      }
+      if (map.getMapCell(x, newPosition.y, Map::LAYER_WALLS)) { return true; }
     }
   }
 
