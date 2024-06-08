@@ -18,9 +18,9 @@
 
 constexpr float CELL_SIZE = 48.0f;
 
-void Editor::init(sf::RenderWindow &window) {
-  currentLayer = Map::LAYER_WALLS;
-  view = window.getView();
+Editor::Editor(sf::RenderWindow &window)
+    : cell(), isFirstMouse(), view(window.getView()), textureNo(),
+      currentLayer(Map::LAYER_WALLS) {
   cell.setFillColor(sf::Color::Green);
 }
 

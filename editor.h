@@ -12,7 +12,7 @@
 
 class Editor {
 public:
-  void init(sf::RenderWindow &window);
+  Editor(sf::RenderWindow &window);
   void run(sf::RenderWindow &window, Map &map);
 
   void handleEvent(const sf::Event &event);
@@ -21,7 +21,7 @@ public:
 
 private:
   sf::RectangleShape cell;
-  bool isFirstMouse{};
+  bool isFirstMouse;
   sf::Vector2i lastMousePos;
   sf::View view;
   int textureNo;

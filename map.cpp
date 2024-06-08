@@ -1,5 +1,6 @@
 #include "map.h"
 #include "resources.h"
+#include "thing.h"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
@@ -11,10 +12,31 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <set>
 #include <vector>
+
+int Map::getMapCell(int x, int y, int layer) const {
+  if (layer < NUM_LAYERS && y >= 0 && y < grid.size() && x >= 0 &&
+      x < grid[y].size()) {
+    return grid[y][x][layer];
+  } else {
+    return 0;
+  }
+}
+
+void Map::setMapCell(int x, int y, int layer, int value) {
+  if (layer < NUM_LAYERS && y >= 0 && y < grid.size() && x >= 0 &&
+      x < grid[y].size()) {
+    grid[y][x][layer] = value;
+  }
+}
+
+size_t Map::getWidth() const { return grid.empty() ? 0 : grid[0].size(); }
+size_t Map::getHeight() const { return grid.size(); }
 
 void Map::draw(sf::RenderTarget &target, float cellSize, int layer,
                uint8_t alpha) const {
@@ -46,19 +68,36 @@ void Map::draw(sf::RenderTarget &target, float cellSize, int layer,
   }
 }
 
-int Map::getMapCell(int x, int y, int layer) const {
-  if (layer < NUM_LAYERS && y >= 0 && y < grid.size() && x >= 0 &&
-      x < grid[y].size()) {
-    return grid[y][x][layer];
-  } else {
-    return 0;
+void Map::fill(int layer, int value) {
+  if (layer < NUM_LAYERS) {
+    for (auto &column : grid) {
+      for (auto &cell : column) {
+        cell[layer] = value;
+      }
+    }
   }
 }
 
-void Map::setMapCell(int x, int y, int layer, int value) {
-  if (layer < NUM_LAYERS && y >= 0 && y < grid.size() && x >= 0 &&
-      x < grid[y].size()) {
-    grid[y][x][layer] = value;
+void Map::resize(size_t width, size_t height) {
+  grid.resize(height);
+  blockmap.resize(height);
+  for (size_t i = 0; i < height; i++) {
+    grid[i].resize(width);
+    blockmap[i].resize(width);
+  }
+}
+
+void Map::insertInBlockmap(int x, int y, Thing *thing) {
+  if (y >= 0 && y < blockmap.size() && x >= 0 && x < blockmap[y].size()) {
+    blockmap[y][x].insert(thing);
+  }
+}
+
+std::set<Thing *> Map::getBlockmap(int x, int y) const {
+  if (y >= 0 && y < blockmap.size() && x >= 0 && x < blockmap[y].size()) {
+    return blockmap[y][x];
+  } else {
+    return {};
   }
 }
 
@@ -73,6 +112,7 @@ void Map::load(const std::filesystem::path &path) {
   in.read(reinterpret_cast<char *>(&h), sizeof(h));
 
   grid = std::vector(h, std::vector(w, std::array<int, NUM_LAYERS>()));
+  blockmap = std::vector(h, std::vector(w, std::set<Thing *>()));
   for (size_t y = 0; y < grid.size(); y++) {
     for (size_t x = 0; x < grid[y].size(); x++) {
       in.read(reinterpret_cast<char *>(grid[y][x].data()),
@@ -99,25 +139,5 @@ void Map::save(const std::filesystem::path &path) const {
       out.write(reinterpret_cast<const char *>(grid[y][x].data()),
                 sizeof(grid[y][x][0]) * NUM_LAYERS);
     }
-  }
-}
-
-void Map::fill(int layer, int value) {
-  if (layer < NUM_LAYERS) {
-    for (auto &column : grid) {
-      for (auto &cell : column) {
-        cell[layer] = value;
-      }
-    }
-  }
-}
-
-size_t Map::getWidth() const { return grid.empty() ? 0 : grid[0].size(); }
-size_t Map::getHeight() const { return grid.size(); }
-
-void Map::resize(size_t width, size_t height) {
-  grid.resize(height);
-  for (auto &column : grid) {
-    column.resize(width);
   }
 }

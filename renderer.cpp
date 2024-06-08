@@ -1,7 +1,8 @@
 #include "renderer.h"
 #include "player.h"
 #include "resources.h"
-#include "sprite.h"
+#include "thing.h"
+
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
@@ -18,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 constexpr float ASPECT = SCREEN_W / SCREEN_H;
@@ -26,7 +28,7 @@ constexpr float PLAYER_FOV = 60.0f;
 constexpr float CAMERA_Z = 0.5f * SCREEN_H;
 constexpr size_t MAX_RAYCAST_DEPTH = 64;
 
-void Renderer::init() {
+Renderer::Renderer() {
   screenBuffer.create(SCREEN_W, SCREEN_H);
   screenBufferSprite.setTexture(screenBuffer);
 
@@ -37,7 +39,8 @@ void Renderer::init() {
 }
 
 void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
-                          const Map &map, std::vector<Sprite> &sprites) {
+                          const Map &map,
+                          std::vector<std::shared_ptr<Thing>> &things) {
   float radians = player.angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * ASPECT * .5f;
@@ -47,6 +50,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
   while (xOffset < 0) {
     xOffset += skyTexture.getSize().x;
   }
+
   sf::Vertex sky[] = {
       sf::Vertex(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(xOffset, 0.0f)),
       sf::Vertex(sf::Vector2f(0.0f, SCREEN_H),
@@ -57,6 +61,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       sf::Vertex(sf::Vector2f(SCREEN_W, 0.0f),
                  sf::Vector2f(xOffset + skyTexture.getSize().x, 0.0f)),
   };
+
   target.draw(sky, 4, sf::Quads, sf::RenderStates(&skyTexture));
 
   uint8_t screenPixels[(size_t)SCREEN_W * (size_t)SCREEN_H * 4]{};
@@ -85,6 +90,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
         floorColor = Resources::texturesImage.getPixel(
             (floorTex - 1) * textureSize + texCoords.x, texCoords.y);
       }
+
       if (ceilTex == 0) {
         ceilingColor = sf::Color(0, 0, 0, 0);
       } else {
@@ -194,18 +200,19 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
 
   target.draw(walls, {&Resources::textures});
 
-  auto getDistance = [player](const Sprite &sprite) {
-    return std::pow(player.position.x - sprite.position.x, 2) +
-           std::pow(player.position.y - sprite.position.y, 2);
+  auto getDistance = [player](const auto &sprite) {
+    return std::pow(player.position.x - sprite->position.x, 2) +
+           std::pow(player.position.y - sprite->position.y, 2);
   };
-  std::sort(sprites.begin(), sprites.end(),
-            [getDistance](const Sprite &a, const Sprite &b) {
+  std::sort(things.begin(), things.end(),
+            [getDistance](const auto &a, const auto &b) {
               return getDistance(a) > getDistance(b);
             });
 
   sf::VertexArray spriteColumns{sf::Lines};
-  for (const auto &sprite : sprites) {
-    sf::Vector2f spritePos = sprite.position - player.position;
+  sf::VertexArray debugColumns{sf::Lines};
+  for (const auto &thing : things) {
+    sf::Vector2f spritePos = thing->position - player.position;
 
     // Inverse Camera Matrix:
     // det = plane.x*dir.y - plane.y*dir.x
@@ -226,21 +233,32 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
     int drawStart = -spriteSize / 2 + screenX;
     int drawEnd = spriteSize / 2 + screenX;
 
-    for (int i = std::max(drawStart, 0);
-         i < std::min(drawEnd, (int)SCREEN_W - 1); i++) {
+    int sizeStart = -spriteSize * thing->size / 2 + screenX;
+    int sizeEnd = spriteSize * thing->size / 2 + screenX;
+
+    int start = std::max(drawStart, 0);
+    int end = std::min(drawEnd, (int)SCREEN_W - 1);
+    for (int i = start; i < end; i++) {
       if (transformed.y > 0.0f && transformed.y < zBuffer[i]) {
         float textureSize = Resources::sprites.getSize().y;
-        float texX = sprite.texture * textureSize +
+        float texX = thing->texture * textureSize +
                      (i - drawStart) * textureSize / spriteSize;
 
-        spriteColumns.append(sf::Vertex(
-            {(float)i, -spriteSize / 2.0f + SCREEN_H / 2.0f}, {texX, 0}));
-        spriteColumns.append(
-            sf::Vertex({(float)i, spriteSize / 2.0f + SCREEN_H / 2.0f},
-                       {texX, textureSize}));
+        sf::Vector2f texStart = {texX, 0}, texEnd = {texX, textureSize};
+        sf::Vector2f vertStart(i, -spriteSize / 2.f + SCREEN_H / 2.f);
+        sf::Vector2f vertEnd(i, spriteSize / 2.f + SCREEN_H / 2.f);
+
+        spriteColumns.append(sf::Vertex(vertStart, texStart));
+        spriteColumns.append(sf::Vertex(vertEnd, texEnd));
+
+        if (i == sizeStart || i == sizeEnd) {
+          debugColumns.append(sf::Vertex(vertStart, sf::Color::Green));
+          debugColumns.append(sf::Vertex(vertEnd, sf::Color::Green));
+        }
       }
     }
   }
 
   target.draw(spriteColumns, {&Resources::sprites});
+  // target.draw(debugColumns);
 }
