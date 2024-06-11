@@ -1,5 +1,4 @@
 #include "renderer.h"
-#include "player.h"
 #include "resources.h"
 #include "thing.h"
 
@@ -38,15 +37,14 @@ Renderer::Renderer() {
   skyTexture.setRepeated(true);
 }
 
-void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
-                          const Map &map,
+void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
+                          float angle, const Map &map,
                           std::vector<std::shared_ptr<Thing>> &things) {
-  float radians = player.angle * PI / 180.0f;
+  float radians = angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * ASPECT * .5f;
-  sf::Vector2f position = player.position;
 
-  int xOffset = SCREEN_W / PLAYER_TURN_SPEED * player.angle;
+  int xOffset = angle / 360.f * skyTexture.getSize().x;
   while (xOffset < 0) {
     xOffset += skyTexture.getSize().x;
   }
@@ -180,7 +178,9 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
       float wallX = isHitVertical ? rayPos.x + perpWallDist * rayDir.x
                                   : rayPos.y + perpWallDist * rayDir.y;
       wallX -= std::floor(wallX);
-      float textureX = wallX * textureSize;
+      int textureX = wallX * textureSize;
+      if (!isHitVertical && rayDir.x > 0) textureX = textureSize - textureX - 1;
+      if (isHitVertical && rayDir.y < 0) textureX = textureSize - textureX - 1;
 
       float brightness = 1.0f - (perpWallDist / (float)MAX_RAYCAST_DEPTH);
       if (isHitVertical) { brightness *= 0.7f; }
@@ -189,10 +189,10 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
           sf::Color(255 * brightness, 255 * brightness, 255 * brightness);
 
       walls.append(
-          sf::Vertex(sf::Vector2f((float)i, wallStart), color,
+          sf::Vertex(sf::Vector2f(i, wallStart), color,
                      sf::Vector2f(textureX + (hit - 1) * textureSize, 0.0f)));
       walls.append(sf::Vertex(
-          sf::Vector2f((float)i, wallEnd), color,
+          sf::Vector2f(i, wallEnd), color,
           sf::Vector2f(textureX + (hit - 1) * textureSize, textureSize)));
       zBuffer[i] = perpWallDist;
     }
@@ -200,19 +200,23 @@ void Renderer::draw3dView(sf::RenderTarget &target, const Player &player,
 
   target.draw(walls, {&Resources::textures});
 
-  auto getDistance = [player](const auto &sprite) {
-    return std::pow(player.position.x - sprite->position.x, 2) +
-           std::pow(player.position.y - sprite->position.y, 2);
+  auto getDistance = [position](const auto &sprite) {
+    return std::pow(position.x - sprite->position.x, 2) +
+           std::pow(position.y - sprite->position.y, 2);
   };
-  std::sort(things.begin(), things.end(),
-            [getDistance](const auto &a, const auto &b) {
-              return getDistance(a) > getDistance(b);
-            });
+
+  auto compare = [getDistance](const auto &a, const auto &b) {
+    return getDistance(a) > getDistance(b);
+  };
+
+  std::sort(things.begin(), things.end(), compare);
 
   sf::VertexArray spriteColumns{sf::Lines};
   sf::VertexArray debugColumns{sf::Lines};
   for (const auto &thing : things) {
-    sf::Vector2f spritePos = thing->position - player.position;
+    if (thing->texture < 0) continue;
+
+    sf::Vector2f spritePos = thing->position - position;
 
     // Inverse Camera Matrix:
     // det = plane.x*dir.y - plane.y*dir.x

@@ -41,21 +41,21 @@ int main(int argc, const char **argv) {
     std::cerr << "Failed to load sprites.png!\n";
   }
 
-  Player player{};
-  Renderer renderer{};
   Editor editor{window};
   Map map{};
-
   if (argc > 1) { map.load(editor.savedFileName = argv[1]); }
-  player.position = sf::Vector2f(2.2f, 2.2f);
 
   std::vector<std::shared_ptr<Thing>> things = {
+      std::make_shared<Thing>(sf::Vector2f{2.2f, 2.2f}, .4f, -1, 45.f),
       std::make_shared<Thing>(sf::Vector2f{6.9f, 5.8f}, .5f, 0),
       std::make_shared<Thing>(sf::Vector2f{6.9f, 9.8f}, .5f, 1),
       std::make_shared<Thing>(sf::Vector2f{6.9f, 7.8f}, 0.f, 2),
   };
 
-  for (auto &thing : things) {
+  Renderer renderer{};
+  Player player{things[0].get()};
+
+  for (const auto &thing : things) {
     sf::Vector2f halfSize = {thing->size / 2.f, thing->size / 2.f};
     sf::Vector2i start = static_cast<sf::Vector2i>(thing->position - halfSize);
     sf::Vector2i end = static_cast<sf::Vector2i>(thing->position + halfSize);
@@ -98,25 +98,36 @@ int main(int argc, const char **argv) {
       player.update(deltaTime.asSeconds(), map);
       if (view2d) {
         sf::View view = window.getDefaultView();
-        view.setCenter(player.position * gridSize2d);
+        view.setCenter(player.thing->position * gridSize2d);
         window.setView(view);
         map.draw(window, gridSize2d, Map::LAYER_WALLS);
-        player.draw(window, gridSize2d);
 
-        sf::RectangleShape rect;
+        sf::RectangleShape rect, line;
         rect.setFillColor(sf::Color::Transparent);
-        rect.setOutlineColor(sf::Color::Green);
         rect.setOutlineThickness(2.f);
 
-        for (const auto &thing : things) {
+        for (auto &thing : things) {
+          line.setSize({thing->size * gridSize2d * 1.25f, gridSize2d / 30.f});
+          line.setPosition(thing->position * gridSize2d);
+          line.setRotation(thing->angle);
+
           rect.setSize(sf::Vector2f(thing->size, thing->size) * gridSize2d);
           rect.setOrigin(rect.getSize() / 2.f);
           rect.setPosition(thing->position * gridSize2d);
+
+          sf::Color color = sf::Color::Green;
+          if (player.thing == thing.get()) { color = sf::Color::Yellow; }
+
+          rect.setOutlineColor(color);
+          line.setFillColor(color);
+
           window.draw(rect);
+          window.draw(line);
         }
       } else {
         window.setView(window.getDefaultView());
-        renderer.draw3dView(window, player, map, things);
+        renderer.draw3dView(window, player.thing->position, player.thing->angle,
+                            map, things);
       }
     } else {
       editor.run(window, map);

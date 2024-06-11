@@ -18,7 +18,7 @@ constexpr float SCREEN_H = 540.0f;
 class Renderer {
 public:
   Renderer();
-  void draw3dView(sf::RenderTarget &target, const Player &player,
+  void draw3dView(sf::RenderTarget &target, sf::Vector2f position, float angle,
                   const Map &map, std::vector<std::shared_ptr<Thing>> &things);
 
 private:
