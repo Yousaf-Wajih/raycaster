@@ -14,6 +14,7 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -44,7 +45,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * ASPECT * .5f;
 
-  int xOffset = angle / 360.f * skyTexture.getSize().x;
+  int xOffset = angle / 90.f * skyTexture.getSize().x;
   while (xOffset < 0) {
     xOffset += skyTexture.getSize().x;
   }
