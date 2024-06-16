@@ -40,15 +40,14 @@ Renderer::Renderer() {
 
 void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
                           float angle, const Map &map,
-                          std::vector<std::shared_ptr<Thing>> &things) {
+                          std::vector<std::shared_ptr<Thing>> &things,
+                          bool debug) {
   float radians = angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
   sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * ASPECT * .5f;
 
   int xOffset = angle / 90.f * skyTexture.getSize().x;
-  while (xOffset < 0) {
-    xOffset += skyTexture.getSize().x;
-  }
+  while (xOffset < 0) { xOffset += skyTexture.getSize().x; }
 
   sf::Vertex sky[] = {
       sf::Vertex(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(xOffset, 0.0f)),
@@ -265,5 +264,5 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
   }
 
   target.draw(spriteColumns, {&Resources::sprites});
-  // target.draw(debugColumns);
+  if (debug) { target.draw(debugColumns); }
 }

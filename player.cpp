@@ -14,7 +14,7 @@ constexpr float MOVE_SPEED = 2.5f;
 
 Player::Player(Thing *thing) : thing(thing) {}
 
-void Player::update(float deltaTime, const Map &map) {
+void Player::update(float deltaTime, const Map &map, bool ghostmode) {
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
     thing->angle -= TURN_SPEED * deltaTime;
   }
@@ -32,5 +32,9 @@ void Player::update(float deltaTime, const Map &map) {
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { move -= front; }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) { move += right; }
 
-  thing->move(map, move * MOVE_SPEED * deltaTime);
+  if (ghostmode) {
+    thing->position += move * MOVE_SPEED * deltaTime;
+  } else {
+    thing->move(map, move * MOVE_SPEED * deltaTime);
+  }
 }
