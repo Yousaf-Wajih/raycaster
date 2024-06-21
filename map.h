@@ -41,6 +41,7 @@ public:
   void resize(size_t width, size_t height);
 
   void insertInBlockmap(int x, int y, Thing *thing);
+  void removeFromBlockmap(int x, int y, Thing *thing);
   std::set<Thing *> getBlockmap(int x, int y) const;
 
   void load(const std::filesystem::path &path);

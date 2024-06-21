@@ -12,7 +12,7 @@ constexpr float PLAYER_TURN_SPEED = 150.f;
 class Player {
 public:
   Player(Thing *thing);
-  void update(float deltaTime, const Map &map, bool ghostmode = false);
+  void update(float deltaTime, Map &map, bool ghostmode = false);
 
   Thing *thing;
 };

@@ -2,9 +2,13 @@
 #include "map.h"
 
 #include <SFML/System/Vector2.hpp>
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <iterator>
+#include <set>
 
-void Thing::move(const Map &map, sf::Vector2f move) {
+void Thing::move(Map &map, sf::Vector2f move) {
   if (move == sf::Vector2f()) return;
 
   float xOffset = move.x > 0.f ? size / 2.f : -size / 2.f;
@@ -18,6 +22,34 @@ void Thing::move(const Map &map, sf::Vector2f move) {
                          false)) {
     position.y += move.y;
   }
+
+  setup_blockmap(map);
+}
+
+void Thing::setup_blockmap(Map &map) {
+  sf::Vector2f halfSize = {size / 2.f, size / 2.f};
+  sf::Vector2i start = static_cast<sf::Vector2i>(position - halfSize);
+  sf::Vector2i end = static_cast<sf::Vector2i>(position + halfSize);
+
+  std::set<std::tuple<int, int>> coords;
+  for (int y = start.y; y <= end.y; y++) {
+    for (int x = start.x; x <= end.x; x++) { coords.insert({x, y}); }
+  }
+
+  std::set<std::tuple<int, int>> to_remove;
+  std::set_difference(blockmap_coords.begin(), blockmap_coords.end(),
+                      coords.begin(), coords.end(),
+                      std::inserter(to_remove, to_remove.end()));
+
+  std::set<std::tuple<int, int>> to_insert;
+  std::set_difference(coords.begin(), coords.end(), blockmap_coords.begin(),
+                      blockmap_coords.end(),
+                      std::inserter(to_insert, to_insert.end()));
+
+  for (const auto &[x, y] : to_remove) { map.removeFromBlockmap(x, y, this); }
+  for (const auto &[x, y] : to_insert) { map.insertInBlockmap(x, y, this); }
+
+  blockmap_coords = coords;
 }
 
 bool Thing::checkMapCollision(const Map &map, sf::Vector2f newPosition,

@@ -71,9 +71,7 @@ void Map::draw(sf::RenderTarget &target, float cellSize, int layer,
 void Map::fill(int layer, int value) {
   if (layer < NUM_LAYERS) {
     for (auto &column : grid) {
-      for (auto &cell : column) {
-        cell[layer] = value;
-      }
+      for (auto &cell : column) { cell[layer] = value; }
     }
   }
 }
@@ -90,6 +88,12 @@ void Map::resize(size_t width, size_t height) {
 void Map::insertInBlockmap(int x, int y, Thing *thing) {
   if (y >= 0 && y < blockmap.size() && x >= 0 && x < blockmap[y].size()) {
     blockmap[y][x].insert(thing);
+  }
+}
+
+void Map::removeFromBlockmap(int x, int y, Thing *thing) {
+  if (y >= 0 && y < blockmap.size() && x >= 0 && x < blockmap[y].size()) {
+    blockmap[y][x].erase(thing);
   }
 }
 

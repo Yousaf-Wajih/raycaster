@@ -19,22 +19,12 @@ Game::Game(Map &map)
           std::make_shared<Thing>(sf::Vector2f{6.9f, 7.8f}, 0.f, 2),
       }),
       player(things[0].get()), renderer(), gridSize2d(64.f) {
-  things[2]->thinker = std::make_shared<FunctionThinker>(
-      [](Thing &thing, const Map &map, float dt) {
+  things[2]->thinker =
+      std::make_shared<FunctionThinker>([](Thing &thing, Map &map, float dt) {
         thing.move(map, sf::Vector2f(1.f, 0.f) * dt);
       });
 
-  for (const auto &thing : things) {
-    sf::Vector2f halfSize = {thing->size / 2.f, thing->size / 2.f};
-    sf::Vector2i start = static_cast<sf::Vector2i>(thing->position - halfSize);
-    sf::Vector2i end = static_cast<sf::Vector2i>(thing->position + halfSize);
-
-    for (int y = start.y; y <= end.y; y++) {
-      for (int x = start.x; x <= end.x; x++) {
-        map.insertInBlockmap(x, y, thing.get());
-      }
-    }
-  }
+  for (const auto &thing : things) { thing->setup_blockmap(map); }
 }
 
 void Game::update(float dt, Map &map, bool game_mode) {
