@@ -6,7 +6,11 @@
 #include <cmath>
 #include <cstdio>
 #include <iterator>
+#include <map>
 #include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 void Thing::move(Map &map, sf::Vector2f move) {
   if (move == sf::Vector2f()) return;
@@ -114,3 +118,10 @@ bool Thing::checkMapCollision(const Map &map, sf::Vector2f newPosition,
 
   return false;
 }
+
+std::vector<ThingDef> thingDefs = {
+    {"player", .4f, -1},
+    {"barrel", .5f, 0},
+    {"pillar", .5f, 1},
+    {"light", 0.f, 2},
+};

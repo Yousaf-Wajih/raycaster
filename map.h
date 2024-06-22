@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -13,6 +14,13 @@
 #include <vector>
 
 #include "thing.h"
+
+struct MapThing {
+  size_t idx;
+
+  sf::Vector2f position;
+  float angle;
+};
 
 class Map {
 public:
@@ -47,9 +55,13 @@ public:
   void load(const std::filesystem::path &path);
   void save(const std::filesystem::path &path) const;
 
+  const std::vector<MapThing> &getThings() const;
+
 private:
   std::vector<std::vector<std::array<int, NUM_LAYERS>>> grid;
   std::vector<std::vector<std::set<Thing *>>> blockmap;
+
+  std::vector<MapThing> things;
 };
 
 #endif // !_MAP_H

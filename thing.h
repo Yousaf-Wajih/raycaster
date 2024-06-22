@@ -5,6 +5,8 @@
 #include <functional>
 #include <memory>
 #include <set>
+#include <string>
+#include <vector>
 
 class Map;
 class Thing;
@@ -44,5 +46,13 @@ private:
   bool checkMapCollision(const Map &map, sf::Vector2f newPosition, bool xAxis);
   std::set<std::tuple<int, int>> blockmap_coords;
 };
+
+struct ThingDef {
+  std::string name;
+  float size;
+  int texture;
+};
+
+extern std::vector<ThingDef> thingDefs;
 
 #endif // !_THING_H

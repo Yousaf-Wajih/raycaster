@@ -3,6 +3,8 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
 #include <vector>
 
@@ -11,24 +13,30 @@
 #include "renderer.h"
 #include "thing.h"
 
-Game::Game(Map &map)
-    : things({
-          std::make_shared<Thing>(sf::Vector2f{2.2f, 2.2f}, .4f, -1, 45.f),
-          std::make_shared<Thing>(sf::Vector2f{6.9f, 5.8f}, .5f, 0),
-          std::make_shared<Thing>(sf::Vector2f{6.9f, 9.8f}, .5f, 1),
-          std::make_shared<Thing>(sf::Vector2f{6.9f, 7.8f}, 0.f, 2),
-      }),
-      player(things[0].get()), renderer(), gridSize2d(64.f) {
-  things[2]->thinker =
-      std::make_shared<FunctionThinker>([](Thing &thing, Map &map, float dt) {
-        thing.move(map, sf::Vector2f(1.f, 0.f) * dt);
-      });
+Game::Game(Map &map) : things(), renderer(), gridSize2d(64.f) {
+  for (const auto &t : map.getThings()) {
+    const auto &def = thingDefs[t.idx];
+    std::shared_ptr thing =
+        std::make_shared<Thing>(t.position, def.size, def.texture, t.angle);
+
+    things.push_back(thing);
+    if (t.idx == 0) { player = std::make_unique<Player>(thing.get()); }
+  }
+
+  if (!player) {
+    const auto &def = thingDefs[0];
+    std::shared_ptr thing =
+        std::make_shared<Thing>(sf::Vector2f{}, def.size, def.texture, 0.f);
+
+    things.push_back(thing);
+    player = std::make_unique<Player>(thing.get());
+  }
 
   for (const auto &thing : things) { thing->setup_blockmap(map); }
 }
 
 void Game::update(float dt, Map &map, bool game_mode) {
-  player.update(dt, map, !game_mode);
+  player->update(dt, map, !game_mode);
   if (game_mode) {
     for (auto &thing : things) {
       if (thing->thinker) { thing->thinker->update(*thing, map, dt); }
@@ -40,7 +48,7 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
                   bool game_mode) {
   if (view2d) {
     sf::View view = window.getDefaultView();
-    view.setCenter(player.thing->position * gridSize2d);
+    view.setCenter(player->thing->position * gridSize2d);
     window.setView(view);
     map.draw(window, gridSize2d, Map::LAYER_WALLS);
 
@@ -58,7 +66,7 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       rect.setPosition(thing->position * gridSize2d);
 
       sf::Color color = sf::Color::Green;
-      if (player.thing == thing.get()) {
+      if (player->thing == thing.get()) {
         color = sf::Color::Yellow;
       } else if (game_mode) {
         continue;
@@ -72,7 +80,7 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
     }
   } else {
     window.setView(window.getDefaultView());
-    renderer.draw3dView(window, player.thing->position, player.thing->angle,
+    renderer.draw3dView(window, player->thing->position, player->thing->angle,
                         map, things, !game_mode);
   }
 }

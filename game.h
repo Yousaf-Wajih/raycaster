@@ -19,7 +19,7 @@ public:
 
 private:
   std::vector<std::shared_ptr<Thing>> things;
-  Player player;
+  std::unique_ptr<Player> player;
   Renderer renderer;
 
   float gridSize2d;
