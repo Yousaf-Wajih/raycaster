@@ -55,7 +55,7 @@ public:
   void load(const std::filesystem::path &path);
   void save(const std::filesystem::path &path) const;
 
-  const std::vector<MapThing> &getThings() const;
+  std::vector<MapThing> &getThings();
 
 private:
   std::vector<std::vector<std::array<int, NUM_LAYERS>>> grid;

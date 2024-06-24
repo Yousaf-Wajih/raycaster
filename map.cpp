@@ -153,13 +153,6 @@ void Map::save(const std::filesystem::path &path) const {
     }
   }
 
-  std::vector<MapThing> things = {
-      {0, {2.2f, 2.2f}, 45.f},
-      {1, {6.9f, 5.8f}, 0.f},
-      {2, {6.9f, 9.8f}, 0.f},
-      {3, {6.9f, 7.8f}, 0.f},
-  };
-
   size_t num_things = things.size();
   out.write(reinterpret_cast<const char *>(&num_things), sizeof num_things);
 
@@ -168,4 +161,4 @@ void Map::save(const std::filesystem::path &path) const {
   }
 }
 
-const std::vector<MapThing> &Map::getThings() const { return things; }
+std::vector<MapThing> &Map::getThings() { return things; }

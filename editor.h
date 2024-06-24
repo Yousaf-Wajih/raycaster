@@ -20,12 +20,25 @@ public:
   std::string savedFileName;
 
 private:
+  void runGridEditor(sf::RenderWindow &window, Map &map);
+  void runThingEditor(sf::RenderWindow &window, Map &map);
+
+  void rebuildBlockmap(Map &map);
+
   sf::RectangleShape cell;
+  sf::View view;
+
   bool isFirstMouse;
   sf::Vector2i lastMousePos;
-  sf::View view;
+
+  bool isThingMode;
+  MapThing *hoveredThing, *selectedThing;
+
   int textureNo;
   int currentLayer;
+
+  bool blockmapDirty;
+  std::vector<std::vector<std::set<MapThing *>>> blockmap;
 };
 
 #endif // !_EDITOR_H
