@@ -32,6 +32,7 @@ private:
   sf::Vector2i lastMousePos;
 
   bool isThingMode;
+  sf::Vector2f lastClickedWorldPos;
   MapThing *hoveredThing, *selectedThing;
 
   int textureNo;

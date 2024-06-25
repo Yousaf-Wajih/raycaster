@@ -55,13 +55,11 @@ public:
   void load(const std::filesystem::path &path);
   void save(const std::filesystem::path &path) const;
 
-  std::vector<MapThing> &getThings();
+  std::vector<MapThing> things;
 
 private:
   std::vector<std::vector<std::array<int, NUM_LAYERS>>> grid;
   std::vector<std::vector<std::set<Thing *>>> blockmap;
-
-  std::vector<MapThing> things;
 };
 
 #endif // !_MAP_H

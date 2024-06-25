@@ -10,6 +10,7 @@
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "editor.h"
@@ -43,7 +44,7 @@ int main(int argc, const char **argv) {
   Editor editor{window};
   if (argc > 1) { map.load(editor.savedFileName = argv[1]); }
 
-  Game game{map};
+  std::unique_ptr game = std::make_unique<Game>(map);
 
   enum class State { Editor, Game } state = State::Game;
   bool view2d = false, game_mode = false;
@@ -55,19 +56,25 @@ int main(int argc, const char **argv) {
 
     sf::Event event;
     while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed) {
-        window.close();
-      } else if (event.type == sf::Event::KeyPressed) {
-        if (event.key.code == sf::Keyboard::Escape) {
+      switch (event.type) {
+      case sf::Event::Closed: window.close(); break;
+      case sf::Event::KeyPressed:
+        switch (event.key.code) {
+        case sf::Keyboard::Escape:
           state = state == State::Game ? State::Editor : State::Game;
+          break;
+        case sf::Keyboard::Tab:
+          if (state == State::Game) { view2d = !view2d; }
+          break;
+        case sf::Keyboard::Tilde: game_mode = !game_mode; break;
+        case sf::Keyboard::R: game = std::make_unique<Game>(map); break;
+        default: break;
         }
-
-        if (event.key.code == sf::Keyboard::Tab) { view2d = !view2d; }
-        if (event.key.code == sf::Keyboard::Tilde) { game_mode = !game_mode; }
+        break;
+      default: break;
       }
 
       if (game_mode) { state = State::Game; }
-
       if (state == State::Editor) { editor.handleEvent(event); }
 
       ImGui::SFML::ProcessEvent(window, event);
@@ -75,8 +82,8 @@ int main(int argc, const char **argv) {
 
     window.clear();
     if (state == State::Game) {
-      game.update(deltaTime.asSeconds(), map, game_mode);
-      game.render(window, map, view2d, game_mode);
+      game->update(deltaTime.asSeconds(), map, game_mode);
+      game->render(window, map, view2d, game_mode);
     } else {
       editor.run(window, map);
     }

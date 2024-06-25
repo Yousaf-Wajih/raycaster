@@ -124,6 +124,8 @@ void Editor::run(sf::RenderWindow &window, Map &map) {
     runGridEditor(window, map);
   }
 
+  ImGui::Separator();
+
   static int newSize[2];
   if (ImGui::Button("Resize")) {
     newSize[0] = map.getWidth();
@@ -198,7 +200,10 @@ void Editor::runThingEditor(sf::RenderWindow &window, Map &map) {
     sf::Vector2i mapPos = static_cast<sf::Vector2i>(worldPos);
 
     bool pressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
-    if (pressed) { selectedThing = nullptr; }
+    if (pressed) {
+      selectedThing = nullptr;
+      lastClickedWorldPos = worldPos;
+    }
 
     hoveredThing = nullptr;
     if (mapPos.x >= 0 && mapPos.x < map.getWidth() && mapPos.y >= 0 &&
@@ -224,7 +229,7 @@ void Editor::runThingEditor(sf::RenderWindow &window, Map &map) {
   rect.setFillColor(sf::Color::Transparent);
   rect.setOutlineThickness(1.5f);
 
-  for (const auto &thing : map.getThings()) {
+  for (const auto &thing : map.things) {
     const auto &def = thingDefs[thing.idx];
     float thingSize = def.size == 0.f ? .5f : def.size;
 
@@ -261,7 +266,28 @@ void Editor::runThingEditor(sf::RenderWindow &window, Map &map) {
     }
   }
 
+  if (ImGui::Button("Add")) {
+    map.things.push_back(MapThing{0, lastClickedWorldPos, 0.f});
+    selectedThing = &map.things[map.things.size() - 1];
+    blockmapDirty = true;
+  }
+
   if (selectedThing) {
+    ImGui::SameLine();
+    if (ImGui::Button("Remove")) {
+      auto it = map.things.begin();
+      for (; it != map.things.end(); it++) {
+        if (&*it == selectedThing) { break; }
+      }
+
+      if (it != map.things.end()) {
+        map.things.erase(it);
+        selectedThing = nullptr;
+        blockmapDirty = true;
+        return;
+      }
+    }
+
     sf::Vector2f oldPos = selectedThing->position;
 
     int idx = selectedThing->idx;
@@ -292,7 +318,7 @@ void Editor::rebuildBlockmap(Map &map) {
   size_t w = map.getWidth(), h = map.getHeight();
   blockmap = std::vector(h, std::vector(w, std::set<MapThing *>()));
 
-  for (auto &thing : map.getThings()) {
+  for (auto &thing : map.things) {
     const auto &def = thingDefs[thing.idx];
     float thingSize = def.size == 0.f ? .5f : def.size;
 

@@ -160,5 +160,3 @@ void Map::save(const std::filesystem::path &path) const {
     out.write(reinterpret_cast<const char *>(&things[i]), sizeof things[i]);
   }
 }
-
-std::vector<MapThing> &Map::getThings() { return things; }

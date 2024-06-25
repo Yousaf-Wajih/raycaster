@@ -14,7 +14,7 @@
 #include "thing.h"
 
 Game::Game(Map &map) : things(), renderer(), gridSize2d(64.f) {
-  for (const auto &t : map.getThings()) {
+  for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
     std::shared_ptr thing =
         std::make_shared<Thing>(t.position, def.size, def.texture, t.angle);
