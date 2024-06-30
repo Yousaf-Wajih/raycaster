@@ -16,8 +16,8 @@
 Game::Game(Map &map) : things(), renderer(), gridSize2d(64.f) {
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
-    std::shared_ptr thing =
-        std::make_shared<Thing>(t.position, def.size, def.texture, t.angle);
+    std::shared_ptr thing = std::make_shared<Thing>(
+        t.position, def.size, def.texture, t.angle, def.directional);
 
     things.push_back(thing);
     if (t.idx == 0) { player = std::make_unique<Player>(thing.get()); }
@@ -80,7 +80,11 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
     }
   } else {
     window.setView(window.getDefaultView());
-    renderer.draw3dView(window, player->thing->position, player->thing->angle,
-                        map, things, !game_mode);
+    renderer.draw3dView(window,
+                        player->thing->position,
+                        player->thing->angle,
+                        map,
+                        things,
+                        !game_mode);
   }
 }

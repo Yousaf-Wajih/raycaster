@@ -17,13 +17,13 @@ void Thing::move(Map &map, sf::Vector2f move) {
 
   float xOffset = move.x > 0.f ? size / 2.f : -size / 2.f;
   float yOffset = move.y > 0.f ? size / 2.f : -size / 2.f;
-  if (!checkMapCollision(map, {position.x + move.x + xOffset, position.y},
-                         true)) {
+  if (!checkMapCollision(
+          map, {position.x + move.x + xOffset, position.y}, true)) {
     position.x += move.x;
   }
 
-  if (!checkMapCollision(map, {position.x, position.y + move.y + yOffset},
-                         false)) {
+  if (!checkMapCollision(
+          map, {position.x, position.y + move.y + yOffset}, false)) {
     position.y += move.y;
   }
 
@@ -41,12 +41,16 @@ void Thing::setup_blockmap(Map &map) {
   }
 
   std::set<std::tuple<int, int>> to_remove;
-  std::set_difference(blockmap_coords.begin(), blockmap_coords.end(),
-                      coords.begin(), coords.end(),
+  std::set_difference(blockmap_coords.begin(),
+                      blockmap_coords.end(),
+                      coords.begin(),
+                      coords.end(),
                       std::inserter(to_remove, to_remove.end()));
 
   std::set<std::tuple<int, int>> to_insert;
-  std::set_difference(coords.begin(), coords.end(), blockmap_coords.begin(),
+  std::set_difference(coords.begin(),
+                      coords.end(),
+                      blockmap_coords.begin(),
                       blockmap_coords.end(),
                       std::inserter(to_insert, to_insert.end()));
 
@@ -119,9 +123,10 @@ bool Thing::checkMapCollision(const Map &map, sf::Vector2f newPosition,
   return false;
 }
 
-std::vector<ThingDef> thingDefs = {
-    {"player", .4f, -1},
-    {"barrel", .5f, 0},
-    {"pillar", .5f, 1},
-    {"light", 0.f, 2},
+std::vector<ThingDef> thingDefs{
+    {"player", .4f, -1, false},
+    {"barrel", .5f, 0, false},
+    {"pillar", .5f, 1, false},
+    {"light", 0.f, 2, false},
+    {"monster", .75f, 3, true},
 };

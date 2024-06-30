@@ -189,10 +189,12 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
           sf::Color(255 * brightness, 255 * brightness, 255 * brightness);
 
       walls.append(
-          sf::Vertex(sf::Vector2f(i, wallStart), color,
+          sf::Vertex(sf::Vector2f(i, wallStart),
+                     color,
                      sf::Vector2f(textureX + (hit - 1) * textureSize, 0.0f)));
       walls.append(sf::Vertex(
-          sf::Vector2f(i, wallEnd), color,
+          sf::Vector2f(i, wallEnd),
+          color,
           sf::Vector2f(textureX + (hit - 1) * textureSize, textureSize)));
       zBuffer[i] = perpWallDist;
     }
@@ -217,6 +219,20 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
     if (thing->texture < 0) continue;
 
     sf::Vector2f spritePos = thing->position - position;
+    int texture = thing->texture;
+    if (thing->directional) {
+      sf::Vector2f dir = spritePos;
+      float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+      dir /= len;
+
+      float angle = thing->angle - std::atan2(dir.y, dir.x) / M_PI * 180.f;
+      angle = std::round(angle / 45.f) * 45.f;
+
+      angle = std::fmod(angle, 360.f);
+      if (angle < 0.f) angle += 360.f;
+
+      texture += angle / 360.f * 8.f;
+    }
 
     // Inverse Camera Matrix:
     // det = plane.x*dir.y - plane.y*dir.x
@@ -245,8 +261,8 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
     for (int i = start; i < end; i++) {
       if (transformed.y > 0.0f && transformed.y < zBuffer[i]) {
         float textureSize = Resources::sprites.getSize().y;
-        float texX = thing->texture * textureSize +
-                     (i - drawStart) * textureSize / spriteSize;
+        float texX =
+            texture * textureSize + (i - drawStart) * textureSize / spriteSize;
 
         sf::Vector2f texStart = {texX, 0}, texEnd = {texX, textureSize};
         sf::Vector2f vertStart(i, -spriteSize / 2.f + SCREEN_H / 2.f);

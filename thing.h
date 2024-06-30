@@ -29,8 +29,9 @@ private:
 class Thing {
 public:
   Thing(sf::Vector2f position = {}, float size = 0.f, int texture = 0,
-        float angle = 0.f)
-      : position(position), size(size), texture(texture), angle(angle) {}
+        float angle = 0.f, bool directional = false)
+      : position(position), size(size), texture(texture), angle(angle),
+        directional(directional) {}
 
   void move(Map &map, sf::Vector2f move);
   void setup_blockmap(Map &map);
@@ -39,6 +40,7 @@ public:
   float angle;
   float size;
   int texture;
+  bool directional;
 
   std::shared_ptr<Thinker> thinker;
 
@@ -51,6 +53,7 @@ struct ThingDef {
   std::string name;
   float size;
   int texture;
+  bool directional;
 };
 
 extern std::vector<ThingDef> thingDefs;
