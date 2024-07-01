@@ -22,7 +22,8 @@
 #include "thing.h"
 
 int main(int argc, const char **argv) {
-  sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H), "Raycaster",
+  sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H),
+                          "Raycaster",
                           sf::Style::Close | sf::Style::Titlebar);
   window.setVerticalSyncEnabled(true);
 
@@ -75,14 +76,18 @@ int main(int argc, const char **argv) {
       }
 
       if (game_mode) { state = State::Game; }
-      if (state == State::Editor) { editor.handleEvent(event); }
+      if (state == State::Editor) {
+        editor.handleEvent(event);
+      } else {
+        game->handleEvent(event, window);
+      }
 
       ImGui::SFML::ProcessEvent(window, event);
     }
 
     window.clear();
     if (state == State::Game) {
-      game->update(deltaTime.asSeconds(), map, game_mode);
+      game->update(window, deltaTime.asSeconds(), map, game_mode);
       game->render(window, map, view2d, game_mode);
     } else {
       editor.run(window, map);

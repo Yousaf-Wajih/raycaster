@@ -9,17 +9,23 @@
 #include <cmath>
 
 constexpr float PI = 3.141592653589793f;
-constexpr float TURN_SPEED = PLAYER_TURN_SPEED;
+constexpr float TURN_SPEED = 150.f;
+constexpr float MOUSE_TURN_SPEED = .08f;
 constexpr float MOVE_SPEED = 2.5f;
 
 Player::Player(Thing *thing) : thing(thing) {}
 
-void Player::update(float deltaTime, Map &map, bool ghostmode) {
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-    thing->angle -= TURN_SPEED * deltaTime;
-  }
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-    thing->angle += TURN_SPEED * deltaTime;
+void Player::update(float deltaTime, Map &map,
+                    std::optional<sf::Vector2i> mouseDelta, bool ghostmode) {
+  if (mouseDelta) {
+    thing->angle += mouseDelta->x * MOUSE_TURN_SPEED;
+  } else {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+      thing->angle -= TURN_SPEED * deltaTime;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+      thing->angle += TURN_SPEED * deltaTime;
+    }
   }
 
   float radians = thing->angle * PI / 180.0f;

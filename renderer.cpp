@@ -185,8 +185,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
       float brightness = 1.0f - (perpWallDist / (float)MAX_RAYCAST_DEPTH);
       if (isHitVertical) { brightness *= 0.7f; }
 
-      sf::Color color =
-          sf::Color(255 * brightness, 255 * brightness, 255 * brightness);
+      sf::Color color(255 * brightness, 255 * brightness, 255 * brightness);
 
       walls.append(
           sf::Vertex(sf::Vector2f(i, wallStart),
