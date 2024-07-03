@@ -1,12 +1,15 @@
 #include "player.h"
 #include "map.h"
+#include "raycast.h"
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
 #include <cmath>
+#include <cstdio>
 
 constexpr float PI = 3.141592653589793f;
 constexpr float TURN_SPEED = 150.f;
@@ -42,5 +45,19 @@ void Player::update(float deltaTime, Map &map,
     thing->position += move * MOVE_SPEED * deltaTime;
   } else {
     thing->move(map, move * MOVE_SPEED * deltaTime);
+
+    static bool justFired = false;
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+      if (!justFired) {
+        RayHit hit = raycast(map, thing->position, front);
+        if (hit.cell) {
+          printf("Hit wall at (%d, %d)\n", hit.mapPos.x, hit.mapPos.y);
+        }
+
+        justFired = true;
+      }
+    } else {
+      justFired = false;
+    }
   }
 }

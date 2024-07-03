@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -37,6 +38,8 @@ Game::Game(Map &map)
     things.push_back(thing);
     player = std::make_unique<Player>(thing.get());
   }
+
+  weapon_tex.loadFromFile("weapon.png");
 
   for (const auto &thing : things) { thing->setup_blockmap(map); }
 }
@@ -114,5 +117,11 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
                         map,
                         things,
                         !game_mode);
+
+    sf::Sprite weapon{weapon_tex};
+    weapon.setOrigin(weapon_tex.getSize().x / 2.f, weapon_tex.getSize().y);
+    weapon.setPosition(window.getSize().x / 2.f, window.getSize().y);
+    weapon.setScale(2.5f, 2.5f);
+    window.draw(weapon);
   }
 }

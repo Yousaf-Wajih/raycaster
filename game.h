@@ -2,6 +2,7 @@
 #define _GAME_H
 
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Window.hpp>
 #include <memory>
@@ -28,6 +29,8 @@ private:
 
   bool isMouseCaptured;
   sf::Vector2i lastMousePos;
+
+  sf::Texture weapon_tex;
 
   float gridSize2d;
 };

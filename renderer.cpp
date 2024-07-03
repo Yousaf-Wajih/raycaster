@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "raycast.h"
 #include "resources.h"
 #include "thing.h"
 
@@ -122,80 +123,44 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
     float cameraX = i * 2.0f / SCREEN_W - 1.0f; // -1.0f -> 0.0f -> 1.0f
     sf::Vector2f rayPos = position;
     sf::Vector2f rayDir = direction + plane * cameraX;
+    RayHit hit = raycast(map, rayPos, rayDir);
 
-    sf::Vector2f deltaDist{
-        std::abs(1.0f / rayDir.x),
-        std::abs(1.0f / rayDir.y),
-    };
-
-    sf::Vector2i mapPos{rayPos};
-    sf::Vector2i step;
-    sf::Vector2f sideDist;
-
-    if (rayDir.x < 0.0f) {
-      step.x = -1;
-      sideDist.x = (-mapPos.x + rayPos.x) * deltaDist.x;
-    } else {
-      step.x = 1;
-      sideDist.x = (mapPos.x - rayPos.x + 1.0f) * deltaDist.x;
-    }
-
-    if (rayDir.y < 0.0f) {
-      step.y = -1;
-      sideDist.y = (-mapPos.y + rayPos.y) * deltaDist.y;
-    } else {
-      step.y = 1;
-      sideDist.y = (mapPos.y - rayPos.y + 1.0f) * deltaDist.y;
-    }
-
-    int hit{}, isHitVertical{};
-    size_t depth = 0;
-    while (hit == 0 && depth < MAX_RAYCAST_DEPTH) {
-      if (sideDist.x < sideDist.y) {
-        sideDist.x += deltaDist.x;
-        mapPos.x += step.x;
-        isHitVertical = false;
-      } else {
-        sideDist.y += deltaDist.y;
-        mapPos.y += step.y;
-        isHitVertical = true;
-      }
-
-      hit = map.getMapCell(mapPos.x, mapPos.y, Map::LAYER_WALLS);
-      depth++;
-    }
-
-    if (hit > 0) {
-      float perpWallDist =
-          isHitVertical ? sideDist.y - deltaDist.y : sideDist.x - deltaDist.x;
-      float wallHeight = SCREEN_H / perpWallDist;
+    if (hit.cell) {
+      float wallHeight = SCREEN_H / hit.perpWallDist;
 
       float wallStart = (-wallHeight + SCREEN_H) / 2.0f;
       float wallEnd = (wallHeight + SCREEN_H) / 2.0f;
 
       float textureSize = Resources::textures.getSize().y;
 
-      float wallX = isHitVertical ? rayPos.x + perpWallDist * rayDir.x
-                                  : rayPos.y + perpWallDist * rayDir.y;
+      float wallX = hit.isHitVertical ? rayPos.x + hit.perpWallDist * rayDir.x
+                                      : rayPos.y + hit.perpWallDist * rayDir.y;
       wallX -= std::floor(wallX);
       int textureX = wallX * textureSize;
-      if (!isHitVertical && rayDir.x > 0) textureX = textureSize - textureX - 1;
-      if (isHitVertical && rayDir.y < 0) textureX = textureSize - textureX - 1;
+      if (!hit.isHitVertical && rayDir.x > 0) {
+        textureX = textureSize - textureX - 1;
+      }
 
-      float brightness = 1.0f - (perpWallDist / (float)MAX_RAYCAST_DEPTH);
-      if (isHitVertical) { brightness *= 0.7f; }
+      if (hit.isHitVertical && rayDir.y < 0) {
+        textureX = textureSize - textureX - 1;
+      }
+
+      float brightness = 1.0f - (hit.perpWallDist / (float)MAX_RAYCAST_DEPTH);
+      if (hit.isHitVertical) { brightness *= 0.7f; }
 
       sf::Color color(255 * brightness, 255 * brightness, 255 * brightness);
 
-      walls.append(
-          sf::Vertex(sf::Vector2f(i, wallStart),
-                     color,
-                     sf::Vector2f(textureX + (hit - 1) * textureSize, 0.0f)));
+      walls.append(sf::Vertex(
+          sf::Vector2f(i, wallStart),
+          color,
+          sf::Vector2f(textureX + (hit.cell - 1) * textureSize, 0.0f)));
+
       walls.append(sf::Vertex(
           sf::Vector2f(i, wallEnd),
           color,
-          sf::Vector2f(textureX + (hit - 1) * textureSize, textureSize)));
-      zBuffer[i] = perpWallDist;
+          sf::Vector2f(textureX + (hit.cell - 1) * textureSize, textureSize)));
+
+      zBuffer[i] = hit.perpWallDist;
     }
   }
 
