@@ -28,10 +28,10 @@ private:
 
 class Thing {
 public:
-  Thing(sf::Vector2f position = {}, float size = 0.f, int texture = 0,
-        float angle = 0.f, bool directional = false)
-      : position(position), size(size), texture(texture), angle(angle),
-        directional(directional) {}
+  Thing(std::string type = "", sf::Vector2f position = {}, float size = 0.f,
+        int texture = 0, float angle = 0.f, bool directional = false)
+      : type(type), position(position), size(size), texture(texture),
+        angle(angle), directional(directional) {}
 
   void move(Map &map, sf::Vector2f move);
   void setup_blockmap(Map &map);
@@ -41,6 +41,7 @@ public:
   float size;
   int texture;
   bool directional;
+  std::string type;
 
   std::shared_ptr<Thinker> thinker;
 

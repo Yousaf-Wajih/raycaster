@@ -24,7 +24,7 @@ Game::Game(Map &map)
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
     std::shared_ptr thing = std::make_shared<Thing>(
-        t.position, def.size, def.texture, t.angle, def.directional);
+        def.name, t.position, def.size, def.texture, t.angle, def.directional);
 
     things.push_back(thing);
     if (t.idx == 0) { player = std::make_unique<Player>(thing.get()); }
@@ -32,8 +32,8 @@ Game::Game(Map &map)
 
   if (!player) {
     const auto &def = thingDefs[0];
-    std::shared_ptr thing =
-        std::make_shared<Thing>(sf::Vector2f{}, def.size, def.texture, 0.f);
+    std::shared_ptr thing = std::make_shared<Thing>(
+        "player", sf::Vector2f{}, def.size, def.texture, 0.f);
 
     things.push_back(thing);
     player = std::make_unique<Player>(thing.get());

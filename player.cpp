@@ -49,8 +49,10 @@ void Player::update(float deltaTime, Map &map,
     static bool justFired = false;
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
       if (!justFired) {
-        RayHit hit = raycast(map, thing->position, front);
-        if (hit.cell) {
+        RayHit hit = raycast(map, thing->position, front, 64, true, thing);
+        if (hit.thing) {
+          printf("Hit a %s\n", hit.thing->type.c_str());
+        } else if (hit.cell) {
           printf("Hit wall at (%d, %d)\n", hit.mapPos.x, hit.mapPos.y);
         }
 
