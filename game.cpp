@@ -3,6 +3,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -14,13 +15,24 @@
 #include <optional>
 #include <vector>
 
+#include "animation.h"
 #include "map.h"
 #include "player.h"
 #include "renderer.h"
 #include "thing.h"
 
 Game::Game(Map &map)
-    : things(), renderer(), gridSize2d(64.f), isMouseCaptured() {
+    : things(), renderer(), gridSize2d(64.f), isMouseCaptured(),
+      weapon_anim(&weapon_tex, {Animation<sf::Texture *>({
+                                   {.0f, &weapon_fire_tex[0]},
+                                   {.15f, &weapon_fire_tex[1]},
+                                   {.3f, &weapon_fire_tex[2]},
+                                   {.45f, &weapon_fire_tex[3]},
+                                   {.6f, &weapon_fire_tex[2]},
+                                   {.75f, &weapon_fire_tex[1]},
+                                   {.9f, &weapon_fire_tex[0]},
+                                   {1.f, &weapon_fire_tex[0]},
+                               })}) {
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
     std::shared_ptr thing = std::make_shared<Thing>(
@@ -40,6 +52,10 @@ Game::Game(Map &map)
   }
 
   weapon_tex.loadFromFile("weapon.png");
+  weapon_fire_tex[0].loadFromFile("weapon_fire0.png");
+  weapon_fire_tex[1].loadFromFile("weapon_fire1.png");
+  weapon_fire_tex[2].loadFromFile("weapon_fire2.png");
+  weapon_fire_tex[3].loadFromFile("weapon_fire3.png");
 
   for (const auto &thing : things) { thing->setup_blockmap(map); }
 }
@@ -54,12 +70,14 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
     sf::Mouse::setPosition(lastMousePos, window);
   }
 
-  player->update(dt, map, mouseDelta, !game_mode);
+  player->update(dt, map, weapon_anim, mouseDelta, !game_mode);
   if (game_mode) {
     for (auto &thing : things) {
       if (thing->thinker) { thing->thinker->update(*thing, map, dt); }
     }
   }
+
+  weapon_anim.update(dt);
 }
 
 void Game::handleEvent(const sf::Event &event, sf::Window &window) {
@@ -118,10 +136,13 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
                         things,
                         !game_mode);
 
-    sf::Sprite weapon{weapon_tex};
-    weapon.setOrigin(weapon_tex.getSize().x / 2.f, weapon_tex.getSize().y);
-    weapon.setPosition(window.getSize().x / 2.f, window.getSize().y);
-    weapon.setScale(2.5f, 2.5f);
-    window.draw(weapon);
+    sf::Texture *tex = weapon_anim.get();
+    if (tex) {
+      sf::Sprite weapon{*tex};
+      weapon.setOrigin(tex->getSize().x / 2.f, tex->getSize().y);
+      weapon.setPosition(window.getSize().x / 2.f, window.getSize().y);
+      weapon.setScale(2.5f, 2.5f);
+      window.draw(weapon);
+    }
   }
 }

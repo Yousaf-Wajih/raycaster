@@ -18,16 +18,16 @@ constexpr float MOVE_SPEED = 2.5f;
 
 Player::Player(Thing *thing) : thing(thing) {}
 
-void Player::update(float deltaTime, Map &map,
+void Player::update(float dt, Map &map, Animator<sf::Texture *> &animator,
                     std::optional<sf::Vector2i> mouseDelta, bool ghostmode) {
   if (mouseDelta) {
     thing->angle += mouseDelta->x * MOUSE_TURN_SPEED;
   } else {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-      thing->angle -= TURN_SPEED * deltaTime;
+      thing->angle -= TURN_SPEED * dt;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-      thing->angle += TURN_SPEED * deltaTime;
+      thing->angle += TURN_SPEED * dt;
     }
   }
 
@@ -42,24 +42,23 @@ void Player::update(float deltaTime, Map &map,
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) { move += right; }
 
   if (ghostmode) {
-    thing->position += move * MOVE_SPEED * deltaTime;
+    thing->position += move * MOVE_SPEED * dt;
   } else {
-    thing->move(map, move * MOVE_SPEED * deltaTime);
+    thing->move(map, move * MOVE_SPEED * dt);
 
-    static bool justFired = false;
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-      if (!justFired) {
-        RayHit hit = raycast(map, thing->position, front, 64, true, thing);
-        if (hit.thing) {
-          printf("Hit a %s\n", hit.thing->type.c_str());
-        } else if (hit.cell) {
-          printf("Hit wall at (%d, %d)\n", hit.mapPos.x, hit.mapPos.y);
-        }
+    static float fireTimer = 0.f;
 
-        justFired = true;
+    fireTimer -= dt;
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && fireTimer <= 0.f) {
+      RayHit hit = raycast(map, thing->position, front, 64, true, thing);
+      if (hit.thing) {
+        printf("Hit a %s\n", hit.thing->type.c_str());
+      } else if (hit.cell) {
+        printf("Hit wall at (%d, %d)\n", hit.mapPos.x, hit.mapPos.y);
       }
-    } else {
-      justFired = false;
+
+      animator.setAnim(0);
+      fireTimer = 1.f;
     }
   }
 }

@@ -5,9 +5,11 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Window.hpp>
+#include <array>
 #include <memory>
 #include <vector>
 
+#include "animation.h"
 #include "map.h"
 #include "player.h"
 #include "renderer.h"
@@ -31,6 +33,8 @@ private:
   sf::Vector2i lastMousePos;
 
   sf::Texture weapon_tex;
+  std::array<sf::Texture, 4> weapon_fire_tex;
+  Animator<sf::Texture *> weapon_anim;
 
   float gridSize2d;
 };
