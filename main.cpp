@@ -41,6 +41,10 @@ int main(int argc, const char **argv) {
     std::cerr << "Failed to load sprites.png!\n";
   }
 
+  if (!Resources::weaponSound.loadFromFile("weapon.wav")) {
+    std::cerr << "Failed to load weapon.wav!\n";
+  }
+
   Map map{};
   Editor editor{window};
   if (argc > 1) { map.load(editor.savedFileName = argv[1]); }

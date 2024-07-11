@@ -1,6 +1,7 @@
 #ifndef _GAME_H
 #define _GAME_H
 
+#include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -32,9 +33,9 @@ private:
   bool isMouseCaptured;
   sf::Vector2i lastMousePos;
 
-  sf::Texture weapon_tex;
-  std::array<sf::Texture, 4> weapon_fire_tex;
-  Animator<sf::Texture *> weapon_anim;
+  sf::Texture weaponTex;
+  std::array<sf::Texture, 4> weaponFireTex;
+  Animator<sf::Texture *> weaponAnim;
 
   float gridSize2d;
 };
