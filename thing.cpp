@@ -1,12 +1,16 @@
 #include "thing.h"
+#include "game.h"
 #include "map.h"
+#include "state.h"
 
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -17,13 +21,13 @@ void Thing::move(Map &map, sf::Vector2f move) {
 
   float xOffset = move.x > 0.f ? size / 2.f : -size / 2.f;
   float yOffset = move.y > 0.f ? size / 2.f : -size / 2.f;
-  if (!checkMapCollision(
-          map, {position.x + move.x + xOffset, position.y}, true)) {
+  if (!checkMapCollision(map, {position.x + move.x + xOffset, position.y},
+                         true)) {
     position.x += move.x;
   }
 
-  if (!checkMapCollision(
-          map, {position.x, position.y + move.y + yOffset}, false)) {
+  if (!checkMapCollision(map, {position.x, position.y + move.y + yOffset},
+                         false)) {
     position.y += move.y;
   }
 
@@ -41,23 +45,19 @@ void Thing::setup_blockmap(Map &map) {
   }
 
   std::set<std::tuple<int, int>> to_remove;
-  std::set_difference(blockmap_coords.begin(),
-                      blockmap_coords.end(),
-                      coords.begin(),
-                      coords.end(),
+  std::set_difference(blockmapCoords.begin(), blockmapCoords.end(),
+                      coords.begin(), coords.end(),
                       std::inserter(to_remove, to_remove.end()));
 
   std::set<std::tuple<int, int>> to_insert;
-  std::set_difference(coords.begin(),
-                      coords.end(),
-                      blockmap_coords.begin(),
-                      blockmap_coords.end(),
+  std::set_difference(coords.begin(), coords.end(), blockmapCoords.begin(),
+                      blockmapCoords.end(),
                       std::inserter(to_insert, to_insert.end()));
 
   for (const auto &[x, y] : to_remove) { map.removeFromBlockmap(x, y, this); }
   for (const auto &[x, y] : to_insert) { map.insertInBlockmap(x, y, this); }
 
-  blockmap_coords = coords;
+  blockmapCoords = coords;
 }
 
 bool Thing::checkMapCollision(const Map &map, sf::Vector2f newPosition,
@@ -123,10 +123,26 @@ bool Thing::checkMapCollision(const Map &map, sf::Vector2f newPosition,
   return false;
 }
 
+void Thing::damage(float damage, GameState state) {
+  health = std::max(health - damage, 0.f);
+  if (thinker) thinker->on_damage(*this, state);
+}
+
+std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers{
+    {
+        "monster",
+        std::make_shared<FunctionThinker>(
+            std::function<void(Thing &, GameState)>{},
+            [](Thing &thing, GameState state) {
+              if (thing.getHealth() <= 0.f) { state.game.destroy(&thing); }
+            }),
+    },
+};
+
 std::vector<ThingDef> thingDefs{
-    {"player", .4f, -1, false},
-    {"barrel", .5f, 0, false},
-    {"pillar", .5f, 1, false},
-    {"light", 0.f, 2, false},
-    {"monster", .75f, 3, true},
+    {"player", .4f, -1},
+    {"barrel", .5f, 0},
+    {"pillar", .5f, 1},
+    {"light", 0.f, 2},
+    {"monster", .75f, 3, true, "monster", 50.f},
 };

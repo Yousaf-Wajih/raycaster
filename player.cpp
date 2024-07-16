@@ -3,6 +3,7 @@
 #include "raycast.h"
 #include "resources.h"
 #include "sound.h"
+#include "state.h"
 
 #include <SFML/Audio/Listener.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
@@ -22,7 +23,8 @@ constexpr float MOVE_SPEED = 2.5f;
 
 Player::Player(Thing *thing) : thing(thing) {}
 
-void Player::update(float dt, Map &map, Animator<sf::Texture *> &animator,
+void Player::update(float dt, GameState state,
+                    Animator<sf::Texture *> &animator,
                     std::optional<sf::Vector2i> mouseDelta, bool ghostmode) {
   if (mouseDelta) {
     thing->angle += mouseDelta->x * MOUSE_TURN_SPEED;
@@ -48,21 +50,16 @@ void Player::update(float dt, Map &map, Animator<sf::Texture *> &animator,
   if (ghostmode) {
     thing->position += move * MOVE_SPEED * dt;
   } else {
-    thing->move(map, move * MOVE_SPEED * dt);
+    thing->move(state.map, move * MOVE_SPEED * dt);
 
     static float fireTimer = 0.f;
 
     fireTimer -= dt;
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && fireTimer <= 0.f) {
-      RayHit hit = raycast(map, thing->position, front, 64, true, thing);
-      if (hit.thing) {
-        printf("Hit a %s\n", hit.thing->type.c_str());
-      } else if (hit.cell) {
-        printf("Hit wall at (%d, %d)\n", hit.mapPos.x, hit.mapPos.y);
-      }
+      RayHit hit = raycast(state.map, thing->position, front, 64, true, thing);
+      if (hit.thing) { hit.thing->damage(10.f, state); }
 
-      sound::play(Resources::weaponSound, {2.f, 2.f, 0.f});
-
+      sound::play(Resources::weaponSound);
       animator.setAnim(0);
       fireTimer = 1.f;
     }

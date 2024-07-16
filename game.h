@@ -25,10 +25,14 @@ public:
   void render(sf::RenderWindow &window, const Map &map, bool view2d,
               bool game_mode);
 
+  void destroy(Thing *thing);
+
 private:
   std::vector<std::shared_ptr<Thing>> things;
   std::unique_ptr<Player> player;
   Renderer renderer;
+
+  std::vector<decltype(things)::iterator> to_delete;
 
   bool isMouseCaptured;
   sf::Vector2i lastMousePos;

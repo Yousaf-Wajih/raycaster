@@ -6,35 +6,57 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <tuple>
+#include <unordered_map>
 #include <vector>
+
+#include "state.h"
 
 class Map;
 class Thing;
 
 class Thinker {
 public:
-  virtual void update(Thing &, Map &, float dt) = 0;
+  virtual void update(Thing &thing, GameState state) = 0;
+  virtual void on_damage(Thing &thing, GameState state) = 0;
 };
 
 class FunctionThinker : public Thinker {
 public:
-  template <typename Fn> FunctionThinker(const Fn &fn) : fn(fn) {}
+  FunctionThinker(std::function<void(Thing &, GameState state)> &&update = {},
+                  std::function<void(Thing &, GameState state)> &&damage = {})
+      : updateFn(update), damageFn(damage) {}
 
-  void update(Thing &thing, Map &map, float dt) override { fn(thing, map, dt); }
+  void update(Thing &thing, GameState state) override {
+    if (updateFn) updateFn(thing, state);
+  }
+
+  void on_damage(Thing &thing, GameState state) override {
+    if (damageFn) damageFn(thing, state);
+  }
 
 private:
-  std::function<void(Thing &, Map &, float)> fn;
+  std::function<void(Thing &, GameState state)> updateFn;
+  std::function<void(Thing &, GameState state)> damageFn;
 };
 
 class Thing {
 public:
-  Thing(std::string type = "", sf::Vector2f position = {}, float size = 0.f,
-        int texture = 0, float angle = 0.f, bool directional = false)
-      : type(type), position(position), size(size), texture(texture),
-        angle(angle), directional(directional) {}
+  Thing(std::string type = "", float health = 0.f, sf::Vector2f position = {},
+        float size = 0.f, int texture = 0, float angle = 0.f,
+        bool directional = false)
+      : type(type), health(health), maxHealth(health), position(position),
+        size(size), texture(texture), angle(angle), directional(directional) {}
 
   void move(Map &map, sf::Vector2f move);
   void setup_blockmap(Map &map);
+
+  void damage(float damage, GameState state);
+
+  float getHealth() const { return health; }
+  const std::set<std::tuple<int, int>> &getBlockmapCoords() const {
+    return blockmapCoords;
+  }
 
   sf::Vector2f position;
   float angle;
@@ -47,7 +69,9 @@ public:
 
 private:
   bool checkMapCollision(const Map &map, sf::Vector2f newPosition, bool xAxis);
-  std::set<std::tuple<int, int>> blockmap_coords;
+  std::set<std::tuple<int, int>> blockmapCoords;
+
+  float health, maxHealth;
 };
 
 struct ThingDef {
@@ -55,8 +79,11 @@ struct ThingDef {
   float size;
   int texture;
   bool directional;
+  std::string thinker;
+  float health;
 };
 
+extern std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers;
 extern std::vector<ThingDef> thingDefs;
 
 #endif // !_THING_H

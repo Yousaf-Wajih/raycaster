@@ -10,6 +10,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Window.hpp>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -22,6 +23,7 @@
 #include "renderer.h"
 #include "resources.h"
 #include "sound.h"
+#include "state.h"
 #include "thing.h"
 
 Game::Game(Map &map)
@@ -38,8 +40,10 @@ Game::Game(Map &map)
                              })}) {
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
-    std::shared_ptr thing = std::make_shared<Thing>(
-        def.name, t.position, def.size, def.texture, t.angle, def.directional);
+    std::shared_ptr thing =
+        std::make_shared<Thing>(def.name, def.health, t.position, def.size,
+                                def.texture, t.angle, def.directional);
+    thing->thinker = thinkers[def.thinker];
 
     things.push_back(thing);
     if (t.idx == 0) { player = std::make_unique<Player>(thing.get()); }
@@ -48,7 +52,7 @@ Game::Game(Map &map)
   if (!player) {
     const auto &def = thingDefs[0];
     std::shared_ptr thing = std::make_shared<Thing>(
-        "player", sf::Vector2f{}, def.size, def.texture, 0.f);
+        "player", 100.f, sf::Vector2f{}, def.size, def.texture, 0.f);
 
     things.push_back(thing);
     player = std::make_unique<Player>(thing.get());
@@ -64,6 +68,16 @@ Game::Game(Map &map)
 }
 
 void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
+  for (const auto &it : to_delete) {
+    for (const auto &[x, y] : it->get()->getBlockmapCoords()) {
+      map.removeFromBlockmap(x, y, it->get());
+    }
+
+    things.erase(it);
+  }
+
+  to_delete.clear();
+
   window.setMouseCursorVisible(!isMouseCaptured);
 
   std::optional<sf::Vector2i> mouseDelta{};
@@ -73,10 +87,11 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
     sf::Mouse::setPosition(lastMousePos, window);
   }
 
-  player->update(dt, map, weaponAnim, mouseDelta, !game_mode);
+  GameState state{*this, map, dt};
+  player->update(dt, state, weaponAnim, mouseDelta, !game_mode);
   if (game_mode) {
     for (auto &thing : things) {
-      if (thing->thinker) { thing->thinker->update(*thing, map, dt); }
+      if (thing->thinker) { thing->thinker->update(*thing, state); }
     }
   }
 
@@ -133,12 +148,8 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
     }
   } else {
     window.setView(window.getDefaultView());
-    renderer.draw3dView(window,
-                        player->thing->position,
-                        player->thing->angle,
-                        map,
-                        things,
-                        !game_mode);
+    renderer.draw3dView(window, player->thing->position, player->thing->angle,
+                        map, things, !game_mode);
 
     sf::Texture *tex = weaponAnim.get();
     if (tex) {
@@ -147,6 +158,15 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       weapon.setPosition(window.getSize().x / 2.f, window.getSize().y);
       weapon.setScale(2.5f, 2.5f);
       window.draw(weapon);
+    }
+  }
+}
+
+void Game::destroy(Thing *thing) {
+  for (auto it = things.begin(); it != things.end(); it++) {
+    if (it->get() == thing) {
+      to_delete.push_back(it);
+      break;
     }
   }
 }

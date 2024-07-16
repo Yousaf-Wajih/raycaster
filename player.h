@@ -9,12 +9,13 @@
 
 #include "animation.h"
 #include "map.h"
+#include "state.h"
 #include "thing.h"
 
 class Player {
 public:
   Player(Thing *thing);
-  void update(float deltaTime, Map &map, Animator<sf::Texture *> &animator,
+  void update(float dt, GameState state, Animator<sf::Texture *> &animator,
               std::optional<sf::Vector2i> mouseDelta = std::nullopt,
               bool ghostmode = false);
 
