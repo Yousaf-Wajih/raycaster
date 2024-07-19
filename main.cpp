@@ -22,9 +22,7 @@
 #include "thing.h"
 
 int main(int argc, const char **argv) {
-  sf::RenderWindow window(sf::VideoMode(SCREEN_W, SCREEN_H),
-                          "Raycaster",
-                          sf::Style::Close | sf::Style::Titlebar);
+  sf::RenderWindow window(sf::VideoMode(960, 540), "Raycaster");
   window.setVerticalSyncEnabled(true);
 
   if (!ImGui::SFML::Init(window)) {
@@ -54,11 +52,14 @@ int main(int argc, const char **argv) {
   enum class State { Editor, Game } state = State::Game;
   bool view2d = false, game_mode = false;
 
+  bool shouldResize = false, justResized = false;
+
   sf::Clock gameClock;
   while (window.isOpen()) {
     sf::Time deltaTime = gameClock.restart();
     ImGui::SFML::Update(window, deltaTime);
 
+    justResized = false;
     sf::Event event;
     while (window.pollEvent(event)) {
       switch (event.type) {
@@ -76,7 +77,17 @@ int main(int argc, const char **argv) {
         default: break;
         }
         break;
+      case sf::Event::Resized: {
+        float aspect = (float)event.size.width / event.size.height;
+        if (aspect < 1.f) { shouldResize = true; }
+        justResized = true;
+      }
       default: break;
+      }
+
+      if (shouldResize && !justResized) {
+        window.setSize(sf::Vector2u(window.getSize().y, window.getSize().y));
+        shouldResize = false;
       }
 
       if (game_mode) { state = State::Game; }

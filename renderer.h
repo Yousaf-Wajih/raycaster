@@ -12,9 +12,6 @@
 #include "player.h"
 #include "thing.h"
 
-constexpr float SCREEN_W = 960.0f;
-constexpr float SCREEN_H = 540.0f;
-
 class Renderer {
 public:
   Renderer();
@@ -24,10 +21,6 @@ public:
 
 private:
   sf::Texture skyTexture;
-
-  sf::Texture screenBuffer;
-  sf::Sprite screenBufferSprite;
-  float zBuffer[(size_t)SCREEN_W];
 };
 
 #endif // !_RENDERER_H

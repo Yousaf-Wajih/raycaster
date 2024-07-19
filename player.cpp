@@ -53,9 +53,11 @@ void Player::update(float dt, GameState state,
     thing->move(state.map, move * MOVE_SPEED * dt);
 
     static float fireTimer = 0.f;
-
     fireTimer -= dt;
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && fireTimer <= 0.f) {
+
+    bool mousePress = mouseDelta && sf::Mouse::isButtonPressed(sf::Mouse::Left);
+    bool keyPress = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl);
+    if ((mousePress || keyPress) && fireTimer <= 0.f) {
       RayHit hit = raycast(state.map, thing->position, front, 64, true, thing);
       if (hit.thing) { hit.thing->damage(10.f, state); }
 

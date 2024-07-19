@@ -23,19 +23,15 @@
 #include <memory>
 #include <vector>
 
-constexpr float ASPECT = SCREEN_W / SCREEN_H;
 constexpr float PI = 3.141592653589793f;
-constexpr float PLAYER_FOV = 60.0f;
-constexpr float CAMERA_Z = 0.5f * SCREEN_H;
+constexpr float PLAYER_FOV = 60.f;
 constexpr size_t MAX_RAYCAST_DEPTH = 64;
 
 Renderer::Renderer() {
-  screenBuffer.create(SCREEN_W, SCREEN_H);
-  screenBufferSprite.setTexture(screenBuffer);
-
   if (!skyTexture.loadFromFile("sky_texture.png")) {
     std::cerr << "Failed to load sky_texture.png!\n";
   }
+
   skyTexture.setRepeated(true);
 }
 
@@ -43,36 +39,43 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
                           float angle, const Map &map,
                           std::vector<std::shared_ptr<Thing>> &things,
                           bool debug) {
+  int width = target.getSize().x, height = target.getSize().y;
+  float aspect = (float)width / height, cameraZ = height * .5f;
+
   float radians = angle * PI / 180.0f;
   sf::Vector2f direction{std::cos(radians), std::sin(radians)};
-  sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * ASPECT * .5f;
+  sf::Vector2f plane = sf::Vector2f(-direction.y, direction.x) * aspect * .5f;
 
   int xOffset = angle / 90.f * skyTexture.getSize().x;
   while (xOffset < 0) { xOffset += skyTexture.getSize().x; }
 
+  float skyAspect = (float)skyTexture.getSize().x / skyTexture.getSize().y;
+  float skyWidth = width;
+  float skyHeight = height * aspect / skyAspect;
+
   sf::Vertex sky[] = {
       sf::Vertex(sf::Vector2f(0.0f, 0.0f), sf::Vector2f(xOffset, 0.0f)),
-      sf::Vertex(sf::Vector2f(0.0f, SCREEN_H),
+      sf::Vertex(sf::Vector2f(0.0f, skyHeight),
                  sf::Vector2f(xOffset, skyTexture.getSize().y)),
-      sf::Vertex(sf::Vector2f(SCREEN_W, SCREEN_H),
+      sf::Vertex(sf::Vector2f(skyWidth, skyHeight),
                  sf::Vector2f(xOffset + skyTexture.getSize().x,
                               skyTexture.getSize().y)),
-      sf::Vertex(sf::Vector2f(SCREEN_W, 0.0f),
+      sf::Vertex(sf::Vector2f(skyWidth, 0.0f),
                  sf::Vector2f(xOffset + skyTexture.getSize().x, 0.0f)),
   };
 
   target.draw(sky, 4, sf::Quads, sf::RenderStates(&skyTexture));
 
-  uint8_t screenPixels[(size_t)SCREEN_W * (size_t)SCREEN_H * 4]{};
-  for (size_t y = SCREEN_H / 2; y < SCREEN_H; y++) {
+  std::vector<uint8_t> screenPixels(width * height * 4);
+  for (size_t y = height / 2; y < height; y++) {
     sf::Vector2f rayDirLeft{direction - plane}, rayDirRight{direction + plane};
-    float rowDistance = CAMERA_Z / ((float)y - SCREEN_H / 2);
+    float rowDistance = cameraZ / (y - height / 2.f);
 
     sf::Vector2f floorStep =
-        rowDistance * (rayDirRight - rayDirLeft) / SCREEN_W;
+        rowDistance * (rayDirRight - rayDirLeft) / (float)width;
     sf::Vector2f floor = position + rowDistance * rayDirLeft;
 
-    for (size_t x = 0; x < SCREEN_W; x++) {
+    for (size_t x = 0; x < width; x++) {
       sf::Vector2i cell{floor};
 
       float textureSize = Resources::texturesImage.getSize().y;
@@ -97,7 +100,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
             (ceilTex - 1) * textureSize + texCoords.x, texCoords.y);
       }
 
-      size_t w = SCREEN_W, h = SCREEN_H;
+      size_t w = width, h = height;
       size_t floorPixel = (x + y * w) * 4;
       size_t ceilPixel = (x + (h - y - 1) * w) * 4;
 
@@ -115,21 +118,26 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
     }
   }
 
-  screenBuffer.update(screenPixels);
+  sf::Texture screenBuffer;
+  screenBuffer.create(width, height);
+  screenBuffer.update(screenPixels.data());
+
+  sf::Sprite screenBufferSprite{screenBuffer};
   target.draw(screenBufferSprite);
 
+  std::vector<float> zBuffer(width);
   sf::VertexArray walls{sf::Lines};
-  for (size_t i = 0; i < SCREEN_W; i++) {
-    float cameraX = i * 2.0f / SCREEN_W - 1.0f; // -1.0f -> 0.0f -> 1.0f
+  for (size_t i = 0; i < width; i++) {
+    float cameraX = i * 2.0f / width - 1.0f; // -1.0f -> 0.0f -> 1.0f
     sf::Vector2f rayPos = position;
     sf::Vector2f rayDir = direction + plane * cameraX;
     RayHit hit = raycast(map, rayPos, rayDir);
 
     if (hit.cell) {
-      float wallHeight = SCREEN_H / hit.perpWallDist;
+      float wallHeight = height / hit.perpWallDist;
 
-      float wallStart = (-wallHeight + SCREEN_H) / 2.0f;
-      float wallEnd = (wallHeight + SCREEN_H) / 2.0f;
+      float wallStart = (-wallHeight + height) / 2.0f;
+      float wallEnd = (wallHeight + height) / 2.0f;
 
       float textureSize = Resources::textures.getSize().y;
 
@@ -151,13 +159,11 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
       sf::Color color(255 * brightness, 255 * brightness, 255 * brightness);
 
       walls.append(sf::Vertex(
-          sf::Vector2f(i, wallStart),
-          color,
+          sf::Vector2f(i, wallStart), color,
           sf::Vector2f(textureX + (hit.cell - 1) * textureSize, 0.0f)));
 
       walls.append(sf::Vertex(
-          sf::Vector2f(i, wallEnd),
-          color,
+          sf::Vector2f(i, wallEnd), color,
           sf::Vector2f(textureX + (hit.cell - 1) * textureSize, textureSize)));
 
       zBuffer[i] = hit.perpWallDist;
@@ -212,8 +218,8 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
         invDet * (-plane.y * spritePos.x + plane.x * spritePos.y),
     };
 
-    int screenX = SCREEN_W / 2 * (1 + transformed.x / transformed.y);
-    int spriteSize = std::abs(SCREEN_H / transformed.y);
+    int screenX = width / 2.f * (1 + transformed.x / transformed.y);
+    int spriteSize = std::abs(height / transformed.y);
     int drawStart = -spriteSize / 2 + screenX;
     int drawEnd = spriteSize / 2 + screenX;
 
@@ -221,7 +227,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
     int sizeEnd = spriteSize * thing->size / 2 + screenX;
 
     int start = std::max(drawStart, 0);
-    int end = std::min(drawEnd, (int)SCREEN_W - 1);
+    int end = std::min(drawEnd, (int)width - 1);
     for (int i = start; i < end; i++) {
       if (transformed.y > 0.0f && transformed.y < zBuffer[i]) {
         float textureSize = Resources::sprites.getSize().y;
@@ -229,8 +235,8 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
             texture * textureSize + (i - drawStart) * textureSize / spriteSize;
 
         sf::Vector2f texStart = {texX, 0}, texEnd = {texX, textureSize};
-        sf::Vector2f vertStart(i, -spriteSize / 2.f + SCREEN_H / 2.f);
-        sf::Vector2f vertEnd(i, spriteSize / 2.f + SCREEN_H / 2.f);
+        sf::Vector2f vertStart(i, -spriteSize / 2.f + height / 2.f);
+        sf::Vector2f vertEnd(i, spriteSize / 2.f + height / 2.f);
 
         spriteColumns.append(sf::Vertex(vertStart, texStart));
         spriteColumns.append(sf::Vertex(vertEnd, texEnd));

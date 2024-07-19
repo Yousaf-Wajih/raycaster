@@ -5,6 +5,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/View.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -83,7 +84,7 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
   std::optional<sf::Vector2i> mouseDelta{};
   if (isMouseCaptured) {
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    mouseDelta = mousePos - lastMousePos;
+    mouseDelta = (mousePos - lastMousePos);
     sf::Mouse::setPosition(lastMousePos, window);
   }
 
@@ -115,9 +116,9 @@ void Game::handleEvent(const sf::Event &event, sf::Window &window) {
 void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
                   bool game_mode) {
   if (view2d) {
-    sf::View view = window.getDefaultView();
-    view.setCenter(player->thing->position * gridSize2d);
-    window.setView(view);
+    sf::Vector2f center = player->thing->position * gridSize2d;
+    sf::Vector2f size = static_cast<sf::Vector2f>(window.getSize());
+    window.setView(sf::View(center, size));
     map.draw(window, gridSize2d, Map::LAYER_WALLS);
 
     sf::RectangleShape rect, line;
@@ -147,7 +148,8 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       window.draw(line);
     }
   } else {
-    window.setView(window.getDefaultView());
+    sf::Vector2f size = static_cast<sf::Vector2f>(window.getSize());
+    window.setView(sf::View(size / 2.f, size));
     renderer.draw3dView(window, player->thing->position, player->thing->angle,
                         map, things, !game_mode);
 
@@ -156,7 +158,7 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       sf::Sprite weapon{*tex};
       weapon.setOrigin(tex->getSize().x / 2.f, tex->getSize().y);
       weapon.setPosition(window.getSize().x / 2.f, window.getSize().y);
-      weapon.setScale(2.5f, 2.5f);
+      weapon.setScale(sf::Vector2f(2.5f, 2.5f) * (window.getSize().x / 960.f));
       window.draw(weapon);
     }
   }
