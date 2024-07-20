@@ -77,7 +77,7 @@ private:
 struct ThingDef {
   std::string name;
   float size;
-  int texture;
+  std::string texture;
   bool directional;
   std::string thinker;
   float health;

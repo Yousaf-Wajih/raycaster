@@ -41,9 +41,14 @@ Game::Game(Map &map)
                              })}) {
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
+
+    int texture = -1;
+    auto it = Resources::spriteNames.find(def.texture);
+    if (it != Resources::spriteNames.end()) texture = it->second;
+
     std::shared_ptr thing =
         std::make_shared<Thing>(def.name, def.health, t.position, def.size,
-                                def.texture, t.angle, def.directional);
+                                texture, t.angle, def.directional);
     thing->thinker = thinkers[def.thinker];
 
     things.push_back(thing);
@@ -52,8 +57,12 @@ Game::Game(Map &map)
 
   if (!player) {
     const auto &def = thingDefs[0];
+    int texture = -1;
+    auto it = Resources::spriteNames.find(def.texture);
+    if (it != Resources::spriteNames.end()) texture = it->second;
+
     std::shared_ptr thing = std::make_shared<Thing>(
-        "player", 100.f, sf::Vector2f{}, def.size, def.texture, 0.f);
+        "player", 100.f, sf::Vector2f{}, def.size, -1, 0.f);
 
     things.push_back(thing);
     player = std::make_unique<Player>(thing.get());

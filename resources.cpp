@@ -4,5 +4,7 @@
 
 sf::Image Resources::texturesImage{};
 sf::Texture Resources::textures{};
-sf::Texture Resources::sprites{};
 sf::SoundBuffer Resources::weaponSound{};
+
+sf::Texture Resources::sprites{};
+std::unordered_map<std::string, int> Resources::spriteNames{};

@@ -252,9 +252,10 @@ void Editor::runThingEditor(sf::RenderWindow &window, Map &map) {
     window.draw(rect);
     window.draw(line);
 
-    if (def.texture >= 0) {
+    auto it = Resources::spriteNames.find(def.texture);
+    if (it != Resources::spriteNames.end()) {
       int texSize = Resources::sprites.getSize().y;
-      sf::IntRect rect{texSize * def.texture, 0, texSize, texSize};
+      sf::IntRect rect{texSize * it->second, 0, texSize, texSize};
       sf::Sprite sprite{Resources::sprites, rect};
 
       sf::Vector2f size{thingSize * CELL_SIZE, thingSize * CELL_SIZE};

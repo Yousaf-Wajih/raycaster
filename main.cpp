@@ -1,4 +1,5 @@
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -9,9 +10,13 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
+#include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "editor.h"
 #include "game.h"
@@ -35,8 +40,37 @@ int main(int argc, const char **argv) {
   }
   Resources::textures.loadFromImage(Resources::texturesImage);
 
-  if (!Resources::sprites.loadFromFile("sprites.png")) {
-    std::cerr << "Failed to load sprites.png!\n";
+  {
+    std::vector<std::pair<std::string, std::shared_ptr<sf::Image>>> sprites;
+    int size = 0;
+    for (const auto &entry : std::filesystem::directory_iterator("sprites/")) {
+      if (entry.is_regular_file() &&
+          entry.path().extension().string() == ".png") {
+        std::shared_ptr image = std::make_shared<sf::Image>();
+        image->loadFromFile(entry.path().string());
+
+        std::string name = entry.path().stem().string();
+        sprites.push_back({name, image});
+
+        if (size == 0) size = image->getSize().y;
+      }
+    }
+
+    std::sort(sprites.begin(), sprites.end(),
+              [](const auto &a, const auto &b) { return a.first < b.first; });
+
+    sf::Image spritesImage;
+    spritesImage.create(sprites.size() * size, size);
+    for (int i = 0; i < sprites.size(); i++) {
+      Resources::spriteNames[sprites[i].first] = i;
+      spritesImage.copy(*sprites[i].second, i * size, 0);
+    }
+
+    for (const auto &[name, idx] : Resources::spriteNames) {
+      std::cout << name << ": " << idx << "\n";
+    }
+
+    Resources::sprites.loadFromImage(spritesImage);
   }
 
   if (!Resources::weaponSound.loadFromFile("weapon.wav")) {

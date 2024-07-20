@@ -195,7 +195,8 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
       float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
       dir /= len;
 
-      float angle = thing->angle - std::atan2(dir.y, dir.x) / M_PI * 180.f;
+      float angle =
+          thing->angle - std::atan2(dir.y, dir.x) / M_PI * 180.f + 180.f;
       angle = std::round(angle / 45.f) * 45.f;
 
       angle = std::fmod(angle, 360.f);

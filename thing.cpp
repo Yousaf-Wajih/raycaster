@@ -140,9 +140,9 @@ std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers{
 };
 
 std::vector<ThingDef> thingDefs{
-    {"player", .4f, -1},
-    {"barrel", .5f, 0},
-    {"pillar", .5f, 1},
-    {"light", 0.f, 2},
-    {"monster", .75f, 3, true, "monster", 50.f},
+    {"player", .4f, ""},
+    {"barrel", .5f, "barrel"},
+    {"pillar", .5f, "pillar"},
+    {"light", 0.f, "light"},
+    {"monster", .75f, "monster_idle0", true, "monster", 50.f},
 };
