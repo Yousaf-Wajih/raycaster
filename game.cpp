@@ -42,14 +42,25 @@ Game::Game(Map &map)
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
 
-    int texture = -1;
-    auto it = Resources::spriteNames.find(def.texture);
-    if (it != Resources::spriteNames.end()) texture = it->second;
-
+    int texture = Resources::getSprite(def.texture);
     std::shared_ptr thing =
         std::make_shared<Thing>(def.name, def.health, t.position, def.size,
                                 texture, t.angle, def.directional);
     thing->thinker = thinkers[def.thinker];
+
+    if (!def.animations.empty()) {
+      std::vector<Animation<int>> animations;
+      for (const auto &anim : def.animations) {
+        std::vector<Animation<int>::Keyframe> keyframes;
+        for (const auto &[time, tex] : anim) {
+          keyframes.push_back({time, Resources::getSprite(tex)});
+        }
+
+        animations.push_back({keyframes});
+      }
+
+      thing->animator = std::make_unique<Animator<int>>(texture, animations);
+    }
 
     things.push_back(thing);
     if (t.idx == 0) { player = std::make_unique<Player>(thing.get()); }
@@ -57,12 +68,9 @@ Game::Game(Map &map)
 
   if (!player) {
     const auto &def = thingDefs[0];
-    int texture = -1;
-    auto it = Resources::spriteNames.find(def.texture);
-    if (it != Resources::spriteNames.end()) texture = it->second;
-
-    std::shared_ptr thing = std::make_shared<Thing>(
-        "player", 100.f, sf::Vector2f{}, def.size, -1, 0.f);
+    std::shared_ptr thing =
+        std::make_shared<Thing>("player", 100.f, sf::Vector2f{}, def.size,
+                                Resources::getSprite(def.texture), 0.f);
 
     things.push_back(thing);
     player = std::make_unique<Player>(thing.get());
@@ -102,6 +110,7 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
   if (game_mode) {
     for (auto &thing : things) {
       if (thing->thinker) { thing->thinker->update(*thing, state); }
+      if (thing->animator) { thing->animator->update(dt); }
     }
   }
 

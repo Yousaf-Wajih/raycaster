@@ -8,8 +8,10 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "animation.h"
 #include "state.h"
 
 class Map;
@@ -46,7 +48,8 @@ public:
         float size = 0.f, int texture = 0, float angle = 0.f,
         bool directional = false)
       : type(type), health(health), maxHealth(health), position(position),
-        size(size), texture(texture), angle(angle), directional(directional) {}
+        size(size), texture(texture), angle(angle), directional(directional),
+        animator(), thinker() {}
 
   void move(Map &map, sf::Vector2f move);
   void setup_blockmap(Map &map);
@@ -65,6 +68,7 @@ public:
   bool directional;
   std::string type;
 
+  std::unique_ptr<Animator<int>> animator;
   std::shared_ptr<Thinker> thinker;
 
 private:
@@ -81,6 +85,8 @@ struct ThingDef {
   bool directional;
   std::string thinker;
   float health;
+
+  std::vector<std::vector<std::pair<float, std::string>>> animations;
 };
 
 extern std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers;

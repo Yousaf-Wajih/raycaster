@@ -134,7 +134,11 @@ std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers{
         std::make_shared<FunctionThinker>(
             std::function<void(Thing &, GameState)>{},
             [](Thing &thing, GameState state) {
-              if (thing.getHealth() <= 0.f) { state.game.destroy(&thing); }
+              if (thing.getHealth() <= 0.f) {
+                state.game.destroy(&thing);
+              } else if (thing.animator) {
+                thing.animator->setAnim(0);
+              }
             }),
     },
 };
@@ -144,5 +148,16 @@ std::vector<ThingDef> thingDefs{
     {"barrel", .5f, "barrel"},
     {"pillar", .5f, "pillar"},
     {"light", 0.f, "light"},
-    {"monster", .75f, "monster_idle0", true, "monster", 50.f},
+
+    {
+        "monster",
+        .75f,
+        "monster_idle0",
+        true,
+        "monster",
+        50.f,
+        {
+            {{.1f, "monster_pain0"}},
+        },
+    },
 };

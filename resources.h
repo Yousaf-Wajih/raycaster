@@ -15,6 +15,8 @@ public:
 
   static sf::Texture sprites;
   static std::unordered_map<std::string, int> spriteNames;
+
+  static int getSprite(std::string name);
 };
 
 #endif // !_RESOURCES_H

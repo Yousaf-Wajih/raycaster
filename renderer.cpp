@@ -186,10 +186,13 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
   sf::VertexArray spriteColumns{sf::Lines};
   sf::VertexArray debugColumns{sf::Lines};
   for (const auto &thing : things) {
-    if (thing->texture < 0) continue;
+    int thingTexture =
+        thing->animator ? (*thing->animator).get() : thing->texture;
+
+    if (thingTexture < 0) continue;
 
     sf::Vector2f spritePos = thing->position - position;
-    int texture = thing->texture;
+    int texture = thingTexture;
     if (thing->directional) {
       sf::Vector2f dir = spritePos;
       float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);

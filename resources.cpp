@@ -8,3 +8,12 @@ sf::SoundBuffer Resources::weaponSound{};
 
 sf::Texture Resources::sprites{};
 std::unordered_map<std::string, int> Resources::spriteNames{};
+
+int Resources::getSprite(std::string name) {
+  auto it = Resources::spriteNames.find(name);
+  if (it != Resources::spriteNames.end()) {
+    return it->second;
+  } else {
+    return -1;
+  }
+}

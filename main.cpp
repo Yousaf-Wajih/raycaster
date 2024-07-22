@@ -66,10 +66,6 @@ int main(int argc, const char **argv) {
       spritesImage.copy(*sprites[i].second, i * size, 0);
     }
 
-    for (const auto &[name, idx] : Resources::spriteNames) {
-      std::cout << name << ": " << idx << "\n";
-    }
-
     Resources::sprites.loadFromImage(spritesImage);
   }
 
