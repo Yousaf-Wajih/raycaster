@@ -11,10 +11,11 @@ class Resources {
 public:
   static sf::Image texturesImage;
   static sf::Texture textures;
-  static sf::SoundBuffer weaponSound;
 
   static sf::Texture sprites;
   static std::unordered_map<std::string, int> spriteNames;
+
+  static std::unordered_map<std::string, sf::SoundBuffer> sounds;
 
   static int getSprite(std::string name);
 };

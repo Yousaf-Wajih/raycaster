@@ -235,8 +235,8 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
     for (int i = start; i < end; i++) {
       if (transformed.y > 0.0f && transformed.y < zBuffer[i]) {
         float textureSize = Resources::sprites.getSize().y;
-        float texX =
-            texture * textureSize + (i - drawStart) * textureSize / spriteSize;
+        float texX = texture * textureSize +
+                     (i - drawStart) * textureSize / spriteSize + .01f;
 
         sf::Vector2f texStart = {texX, 0}, texEnd = {texX, textureSize};
         sf::Vector2f vertStart(i, -spriteSize / 2.f + height / 2.f);

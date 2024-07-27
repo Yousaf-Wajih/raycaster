@@ -190,3 +190,5 @@ void Game::destroy(Thing *thing) {
     }
   }
 }
+
+Player &Game::getPlayer() { return *player; }

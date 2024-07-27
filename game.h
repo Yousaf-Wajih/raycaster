@@ -27,6 +27,8 @@ public:
 
   void destroy(Thing *thing);
 
+  Player &getPlayer();
+
 private:
   std::vector<std::shared_ptr<Thing>> things;
   std::unique_ptr<Player> player;

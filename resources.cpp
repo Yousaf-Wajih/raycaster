@@ -4,10 +4,11 @@
 
 sf::Image Resources::texturesImage{};
 sf::Texture Resources::textures{};
-sf::SoundBuffer Resources::weaponSound{};
 
 sf::Texture Resources::sprites{};
 std::unordered_map<std::string, int> Resources::spriteNames{};
+
+std::unordered_map<std::string, sf::SoundBuffer> Resources::sounds;
 
 int Resources::getSprite(std::string name) {
   auto it = Resources::spriteNames.find(name);

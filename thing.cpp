@@ -1,12 +1,16 @@
 #include "thing.h"
 #include "game.h"
 #include "map.h"
+#include "resources.h"
+#include "sound.h"
 #include "state.h"
 
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <functional>
 #include <iterator>
 #include <map>
@@ -128,25 +132,56 @@ void Thing::damage(float damage, GameState state) {
   if (thinker) thinker->on_damage(*this, state);
 }
 
+enum States {
+  STATE_IDLE = -1,
+  STATE_RUN = 1,
+  STATE_PAIN = 0,
+};
+
+void monster_update(Thing &thing, GameState state) {
+  int anim = thing.animator->getAnim();
+  Thing *player = state.game.getPlayer().thing;
+  sf::Vector2f playerDir = player->position - thing.position;
+
+  thing.time -= state.dt;
+  if ((anim == STATE_IDLE || anim == STATE_RUN) && thing.time <= 0.f) {
+    thing.time = (float)rand() / RAND_MAX * 8.f + 4.f;
+    sound::play(Resources::sounds["monster_act"], thing.position, 2.f);
+  }
+
+  if (anim == STATE_IDLE) {
+    sf::Vector2f dir{std::cos(thing.angle), std::sin(thing.angle)};
+    float dot = dir.x * playerDir.x + dir.y * playerDir.y;
+    if (dot > 0.f) thing.animator->setAnim(STATE_RUN, true);
+  } else if (anim == STATE_RUN) {
+    thing.angle = std::atan2(playerDir.y, playerDir.x) / M_PI * 180.f;
+  }
+}
+
+void monster_on_damage(Thing &thing, GameState state) {
+  if (thing.getHealth() <= 0.f) {
+    state.game.destroy(&thing);
+  } else if (thing.animator) {
+    if (thing.animator->getAnim() == STATE_IDLE) {
+      thing.animator->setAnim(STATE_RUN, true);
+    }
+
+    thing.animator->setAnim(STATE_PAIN);
+    sound::play(Resources::sounds["monster_pain"], thing.position, 5.f);
+  }
+}
+
 std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers{
     {
         "monster",
-        std::make_shared<FunctionThinker>(
-            std::function<void(Thing &, GameState)>{},
-            [](Thing &thing, GameState state) {
-              if (thing.getHealth() <= 0.f) {
-                state.game.destroy(&thing);
-              } else if (thing.animator) {
-                thing.animator->setAnim(0);
-              }
-            }),
+        std::make_shared<FunctionThinker>(monster_update, monster_on_damage),
     },
 };
 
 std::vector<ThingDef> thingDefs{
     {"player", .4f, ""},
     {"barrel", .5f, "barrel"},
-    {"pillar", .5f, "pillar"},
+    {"pillar", .4f, "pillar"},
     {"light", 0.f, "light"},
 
     {
@@ -158,6 +193,12 @@ std::vector<ThingDef> thingDefs{
         50.f,
         {
             {{.1f, "monster_pain0"}},
+            {
+                {.0f, "monster_idle0"},
+                {.1f, "monster_run1_0"},
+                {.2f, "monster_run2_0"},
+                {.3f, "monster_run3_0"},
+            },
         },
     },
 };

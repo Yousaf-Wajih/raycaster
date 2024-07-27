@@ -11,6 +11,8 @@
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/WindowStyle.hpp>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -27,6 +29,7 @@
 #include "thing.h"
 
 int main(int argc, const char **argv) {
+  srand(time(nullptr));
   sf::RenderWindow window(sf::VideoMode(960, 540), "Raycaster");
   window.setVerticalSyncEnabled(true);
 
@@ -69,8 +72,12 @@ int main(int argc, const char **argv) {
     Resources::sprites.loadFromImage(spritesImage);
   }
 
-  if (!Resources::weaponSound.loadFromFile("weapon.wav")) {
-    std::cerr << "Failed to load weapon.wav!\n";
+  for (const auto &entry : std::filesystem::directory_iterator("sounds/")) {
+    if (entry.is_regular_file() &&
+        entry.path().extension().string() == ".wav") {
+      std::string name = entry.path().stem().string();
+      Resources::sounds[name].loadFromFile(entry.path().string());
+    }
   }
 
   Map map{};

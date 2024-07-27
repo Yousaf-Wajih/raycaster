@@ -47,11 +47,16 @@ private:
 template <typename T> class Animator {
 public:
   Animator(T base = T(), std::vector<Animation<T>> animations = {})
-      : base(base), animations(animations), current(-1) {}
+      : base(base), animations(animations), current(-1), last(-1), time(),
+        looping(), lastLooping() {}
+
+  size_t getAnim() { return current; }
 
   void setAnim(size_t anim, bool loop = false) {
-    if (anim == -1 || anim < animations.size()) {
+    if (anim < animations.size()) {
+      last = current;
       current = anim;
+      lastLooping = looping;
       looping = loop;
       time = 0.f;
     }
@@ -63,7 +68,10 @@ public:
       if (looping) {
         time -= animations[current].getDuration();
       } else {
-        current = -1;
+        time = 0.f;
+        current = last;
+        looping = lastLooping;
+        last = -1;
       }
     }
   }
@@ -80,8 +88,8 @@ private:
   T base;
   std::vector<Animation<T>> animations;
 
-  bool looping = false;
-  size_t current;
+  bool looping, lastLooping;
+  size_t current, last;
   float time;
 };
 

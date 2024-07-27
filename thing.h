@@ -49,7 +49,7 @@ public:
         bool directional = false)
       : type(type), health(health), maxHealth(health), position(position),
         size(size), texture(texture), angle(angle), directional(directional),
-        animator(), thinker() {}
+        animator(), thinker(), time() {}
 
   void move(Map &map, sf::Vector2f move);
   void setup_blockmap(Map &map);
@@ -70,6 +70,8 @@ public:
 
   std::unique_ptr<Animator<int>> animator;
   std::shared_ptr<Thinker> thinker;
+
+  float time; // used by monster
 
 private:
   bool checkMapCollision(const Map &map, sf::Vector2f newPosition, bool xAxis);

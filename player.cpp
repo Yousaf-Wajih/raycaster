@@ -61,7 +61,7 @@ void Player::update(float dt, GameState state,
       RayHit hit = raycast(state.map, thing->position, front, 64, true, thing);
       if (hit.thing) { hit.thing->damage(10.f, state); }
 
-      sound::play(Resources::weaponSound);
+      sound::play(Resources::sounds["weapon"]);
       animator.setAnim(0);
       fireTimer = 1.f;
     }
