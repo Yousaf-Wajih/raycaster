@@ -153,11 +153,10 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       rect.setPosition(thing->position * gridSize2d);
 
       sf::Color color = sf::Color::Green;
-      if (player->thing == thing.get()) {
-        color = sf::Color::Yellow;
-      } else if (game_mode) {
-        continue;
-      }
+      if (player->thing == thing.get()) { color = sf::Color::Yellow; }
+      // else if (game_mode) {
+      //   continue;
+      // }
 
       rect.setOutlineColor(color);
       line.setFillColor(color);

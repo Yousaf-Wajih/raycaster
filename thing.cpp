@@ -1,4 +1,5 @@
 #include "thing.h"
+#include "animation.h"
 #include "game.h"
 #include "map.h"
 #include "resources.h"
@@ -22,6 +23,11 @@
 
 void Thing::move(Map &map, sf::Vector2f move) {
   if (move == sf::Vector2f()) return;
+
+  if (size == 0.f) {
+    position += move;
+    return;
+  }
 
   float xOffset = move.x > 0.f ? size / 2.f : -size / 2.f;
   float yOffset = move.y > 0.f ? size / 2.f : -size / 2.f;
@@ -136,37 +142,54 @@ enum States {
   STATE_IDLE = -1,
   STATE_RUN = 1,
   STATE_PAIN = 0,
+  STATE_DEAD = 2,
 };
 
 void monster_update(Thing &thing, GameState state) {
   int anim = thing.animator->getAnim();
+  if (anim == STATE_DEAD) return;
+
+  float angle = thing.angle / 180.f * M_PI;
+  sf::Vector2f dir{std::cos(angle), std::sin(angle)};
+
   Thing *player = state.game.getPlayer().thing;
-  sf::Vector2f playerDir = player->position - thing.position;
+  sf::Vector2f toPlayerDir = player->position - thing.position;
 
   thing.time -= state.dt;
   if ((anim == STATE_IDLE || anim == STATE_RUN) && thing.time <= 0.f) {
-    thing.time = (float)rand() / RAND_MAX * 8.f + 4.f;
-    sound::play(Resources::sounds["monster_act"], thing.position, 2.f);
+    thing.time = (float)rand() / RAND_MAX * .5f + .5f;
+    if (anim == STATE_RUN) {
+      thing.angle = std::atan2(toPlayerDir.y, toPlayerDir.x) / M_PI * 180.f;
+    }
+
+    if (rand() % 12 > 9) {
+      sound::play(Resources::sounds["monster_act"], thing.position, 2.f);
+    }
   }
 
   if (anim == STATE_IDLE) {
-    sf::Vector2f dir{std::cos(thing.angle), std::sin(thing.angle)};
-    float dot = dir.x * playerDir.x + dir.y * playerDir.y;
-    if (dot > 0.f) thing.animator->setAnim(STATE_RUN, true);
+    float dot = dir.x * toPlayerDir.x + dir.y * toPlayerDir.y;
+    if (dot > 0.f) {
+      thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
+      sound::play(Resources::sounds["monster_alert"], thing.position, 4.f);
+    }
   } else if (anim == STATE_RUN) {
-    thing.angle = std::atan2(playerDir.y, playerDir.x) / M_PI * 180.f;
+    thing.move(state.map, dir * state.dt * 2.f);
   }
 }
 
 void monster_on_damage(Thing &thing, GameState state) {
   if (thing.getHealth() <= 0.f) {
-    state.game.destroy(&thing);
+    thing.size = 0.f;
+    thing.directional = false;
+    thing.animator->setAnim(STATE_DEAD);
+    sound::play(Resources::sounds["monster_death"], thing.position, 6.f);
   } else if (thing.animator) {
     if (thing.animator->getAnim() == STATE_IDLE) {
-      thing.animator->setAnim(STATE_RUN, true);
+      thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
     }
 
-    thing.animator->setAnim(STATE_PAIN);
+    thing.animator->setAnim(STATE_PAIN, FinishAction::Last);
     sound::play(Resources::sounds["monster_pain"], thing.position, 5.f);
   }
 }
@@ -198,6 +221,14 @@ std::vector<ThingDef> thingDefs{
                 {.1f, "monster_run1_0"},
                 {.2f, "monster_run2_0"},
                 {.3f, "monster_run3_0"},
+            },
+            {
+                {.0f, "monster_death0"},
+                {.2f, "monster_death1"},
+                {.4f, "monster_death2"},
+                {.6f, "monster_death3"},
+                {.8f, "monster_death4"},
+                {1.4f, "monster_death5"},
             },
         },
     },

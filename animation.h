@@ -44,20 +44,24 @@ private:
   float duration;
 };
 
+enum class FinishAction { None, Loop, Last };
+
 template <typename T> class Animator {
 public:
   Animator(T base = T(), std::vector<Animation<T>> animations = {})
       : base(base), animations(animations), current(-1), last(-1), time(),
-        looping(), lastLooping() {}
+        action(), lastAction() {}
+
+  void setBase(T newBase) { base = newBase; }
 
   size_t getAnim() { return current; }
 
-  void setAnim(size_t anim, bool loop = false) {
+  void setAnim(size_t anim, FinishAction newAction = FinishAction::None) {
     if (anim < animations.size()) {
       last = current;
       current = anim;
-      lastLooping = looping;
-      looping = loop;
+      lastAction = action;
+      action = newAction;
       time = 0.f;
     }
   }
@@ -65,12 +69,12 @@ public:
   void update(float dt) {
     time += dt;
     if (current >= 0 && time >= animations[current].getDuration()) {
-      if (looping) {
+      if (action == FinishAction::Loop) {
         time -= animations[current].getDuration();
-      } else {
+      } else if (action == FinishAction::Last) {
         time = 0.f;
         current = last;
-        looping = lastLooping;
+        action = lastAction;
         last = -1;
       }
     }
@@ -88,7 +92,7 @@ private:
   T base;
   std::vector<Animation<T>> animations;
 
-  bool looping, lastLooping;
+  FinishAction action, lastAction;
   size_t current, last;
   float time;
 };
