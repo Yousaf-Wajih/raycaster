@@ -15,10 +15,12 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <future>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -67,7 +69,7 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
   target.draw(sky, 4, sf::Quads, sf::RenderStates(&skyTexture));
 
   std::vector<uint8_t> screenPixels(width * height * 4);
-  for (size_t y = height / 2; y < height; y++) {
+  auto drawRow = [&](size_t y) {
     sf::Vector2f rayDirLeft{direction - plane}, rayDirRight{direction + plane};
     float rowDistance = cameraZ / (y - height / 2.f);
 
@@ -116,14 +118,21 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
 
       floor += floorStep;
     }
+  };
+
+  auto rowLoop = [&](size_t start, size_t end) {
+    for (size_t i = start; i < end; i++) { drawRow(i); }
+  };
+
+  constexpr size_t NUM_TASKS = 8;
+  std::array<std::future<void>, NUM_TASKS> tasks;
+
+  size_t numRowsPerTask = std::ceil(height / 2.f / NUM_TASKS);
+  for (size_t i = 0; i < NUM_TASKS; i++) {
+    size_t start = height / 2 + i * numRowsPerTask;
+    size_t end = i == NUM_TASKS - 1 ? height : start + numRowsPerTask;
+    tasks[i] = std::async(rowLoop, start, end);
   }
-
-  sf::Texture screenBuffer;
-  screenBuffer.create(width, height);
-  screenBuffer.update(screenPixels.data());
-
-  sf::Sprite screenBufferSprite{screenBuffer};
-  target.draw(screenBufferSprite);
 
   std::vector<float> zBuffer(width);
   sf::VertexArray walls{sf::Lines};
@@ -169,8 +178,6 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
       zBuffer[i] = hit.perpWallDist;
     }
   }
-
-  target.draw(walls, {&Resources::textures});
 
   auto getDistance = [position](const auto &sprite) {
     return std::pow(position.x - sprite->position.x, 2) +
@@ -252,6 +259,16 @@ void Renderer::draw3dView(sf::RenderTarget &target, sf::Vector2f position,
       }
     }
   }
+
+  for (auto &task : tasks) task.wait();
+  sf::Texture screenBuffer;
+  screenBuffer.create(width, height);
+  screenBuffer.update(screenPixels.data());
+
+  sf::Sprite screenBufferSprite{screenBuffer};
+  target.draw(screenBufferSprite);
+
+  target.draw(walls, {&Resources::textures});
 
   target.draw(spriteColumns, {&Resources::sprites});
   if (debug) { target.draw(debugColumns); }
