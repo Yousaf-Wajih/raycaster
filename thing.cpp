@@ -158,11 +158,7 @@ void monster_update(Thing &thing, GameState state) {
   thing.time -= state.dt;
   if ((anim == STATE_IDLE || anim == STATE_RUN) && thing.time <= 0.f) {
     thing.time = (float)rand() / RAND_MAX * .5f + .5f;
-    if (anim == STATE_RUN) {
-      thing.angle = std::atan2(toPlayerDir.y, toPlayerDir.x) / M_PI * 180.f;
-    }
-
-    if (rand() % 12 > 9) {
+    if (rand() % 12 > 10) {
       sound::play(Resources::sounds["monster_act"], thing.position, 2.f);
     }
   }
@@ -174,6 +170,15 @@ void monster_update(Thing &thing, GameState state) {
       sound::play(Resources::sounds["monster_alert"], thing.position, 4.f);
     }
   } else if (anim == STATE_RUN) {
+    auto path = state.pathfinder.getPath((sf::Vector2i)thing.position,
+                                         (sf::Vector2i)player->position);
+
+    auto [x, y] = path[path.size() - 1];
+
+    sf::Vector2f next = {x + .5f, y + .5f};
+    sf::Vector2f toPathDir = next - thing.position;
+    thing.angle = std::atan2(toPathDir.y, toPathDir.x) / M_PI * 180.f;
+
     thing.move(state.map, dir * state.dt * 2.f);
   }
 }
@@ -209,7 +214,7 @@ std::vector<ThingDef> thingDefs{
 
     {
         "monster",
-        .75f,
+        .5f,
         "monster_idle0",
         true,
         "monster",

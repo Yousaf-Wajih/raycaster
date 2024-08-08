@@ -20,6 +20,7 @@
 
 #include "animation.h"
 #include "map.h"
+#include "pathfinder.h"
 #include "player.h"
 #include "renderer.h"
 #include "resources.h"
@@ -28,17 +29,17 @@
 #include "thing.h"
 
 Game::Game(Map &map)
-    : things(), renderer(), gridSize2d(64.f), isMouseCaptured(),
-      weaponAnim(&weaponTex, {Animation<sf::Texture *>({
-                                 {.0f, &weaponFireTex[0]},
-                                 {.15f, &weaponFireTex[1]},
-                                 {.3f, &weaponFireTex[2]},
-                                 {.45f, &weaponFireTex[3]},
-                                 {.6f, &weaponFireTex[2]},
-                                 {.75f, &weaponFireTex[1]},
-                                 {.9f, &weaponFireTex[0]},
-                                 {1.f, &weaponFireTex[0]},
-                             })}) {
+    : things(), renderer(), pathfinder(map), gridSize2d(64.f),
+      isMouseCaptured(), weaponAnim(&weaponTex, {Animation<sf::Texture *>({
+                                                    {.0f, &weaponFireTex[0]},
+                                                    {.15f, &weaponFireTex[1]},
+                                                    {.3f, &weaponFireTex[2]},
+                                                    {.45f, &weaponFireTex[3]},
+                                                    {.6f, &weaponFireTex[2]},
+                                                    {.75f, &weaponFireTex[1]},
+                                                    {.9f, &weaponFireTex[0]},
+                                                    {1.f, &weaponFireTex[0]},
+                                                })}) {
   for (const auto &t : map.things) {
     const auto &def = thingDefs[t.idx];
 
@@ -105,7 +106,7 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
     sf::Mouse::setPosition(lastMousePos, window);
   }
 
-  GameState state{*this, map, dt};
+  GameState state{*this, map, pathfinder, dt};
   player->update(dt, state, weaponAnim, mouseDelta, !game_mode);
   if (game_mode) {
     for (auto &thing : things) {

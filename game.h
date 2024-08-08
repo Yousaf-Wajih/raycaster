@@ -12,6 +12,7 @@
 
 #include "animation.h"
 #include "map.h"
+#include "pathfinder.h"
 #include "player.h"
 #include "renderer.h"
 #include "thing.h"
@@ -33,6 +34,7 @@ private:
   std::vector<std::shared_ptr<Thing>> things;
   std::unique_ptr<Player> player;
   Renderer renderer;
+  PathFinder pathfinder;
 
   std::vector<decltype(things)::iterator> to_delete;
 

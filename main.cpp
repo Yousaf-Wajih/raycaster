@@ -31,7 +31,7 @@
 int main(int argc, const char **argv) {
   srand(time(nullptr));
   sf::RenderWindow window(sf::VideoMode(960, 540), "Raycaster");
-  // window.setVerticalSyncEnabled(true);
+  window.setVerticalSyncEnabled(true);
 
   if (!ImGui::SFML::Init(window)) {
     std::cerr << "Failed to init ImGui\n";
