@@ -2,6 +2,7 @@
 #include "animation.h"
 #include "game.h"
 #include "map.h"
+#include "raycast.h"
 #include "resources.h"
 #include "sound.h"
 #include "state.h"
@@ -166,12 +167,17 @@ void monster_update(Thing &thing, GameState state) {
   if (anim == STATE_IDLE) {
     float dot = dir.x * toPlayerDir.x + dir.y * toPlayerDir.y;
     if (dot > 0.f) {
-      thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
-      sound::play(Resources::sounds["monster_alert"], thing.position, 4.f);
+      auto hit = raycast(state.map, thing.position, toPlayerDir, 32, true);
+
+      if (hit.thing == player) {
+        thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
+        sound::play(Resources::sounds["monster_alert"], thing.position, 4.f);
+      }
     }
   } else if (anim == STATE_RUN) {
-    auto path = state.pathfinder.getPath((sf::Vector2i)thing.position,
-                                         (sf::Vector2i)player->position);
+    auto path =
+        state.pathfinder.getPath((sf::Vector2i)thing.position,
+                                 (sf::Vector2i)player->position, thing.size);
 
     auto [x, y] = path[path.size() - 1];
 
@@ -214,7 +220,7 @@ std::vector<ThingDef> thingDefs{
 
     {
         "monster",
-        .5f,
+        1.f,
         "monster_idle0",
         true,
         "monster",

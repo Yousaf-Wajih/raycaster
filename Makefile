@@ -4,7 +4,7 @@ L_FLAGS = -lsfml-graphics -lsfml-window -lsfml-audio -lsfml-system -lGL
 
 BIN = raycaster
 BUILD_DIR = ./build
-ARGS = test.map
+ARGS = test2.map
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)

@@ -134,6 +134,9 @@ void Game::handleEvent(const sf::Event &event, sf::Window &window) {
 
 void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
                   bool game_mode) {
+  auto path = pathfinder.getPath(
+      {8, 3}, static_cast<sf::Vector2i>(player->thing->position), 1.f);
+
   if (view2d) {
     sf::Vector2f center = player->thing->position * gridSize2d;
     sf::Vector2f size = static_cast<sf::Vector2f>(window.getSize());
@@ -164,6 +167,17 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
 
       window.draw(rect);
       window.draw(line);
+    }
+
+    if (game_mode) {
+      rect.setFillColor(sf::Color::Blue);
+      rect.setOutlineThickness(0.f);
+      rect.setSize({gridSize2d, gridSize2d});
+      rect.setOrigin({0, 0});
+      for (const auto &[x, y] : path) {
+        rect.setPosition(x * gridSize2d, y * gridSize2d);
+        window.draw(rect);
+      }
     }
   } else {
     sf::Vector2f size = static_cast<sf::Vector2f>(window.getSize());

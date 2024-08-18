@@ -3,6 +3,7 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <array>
+#include <cmath>
 #include <deque>
 #include <optional>
 #include <utility>
@@ -19,7 +20,7 @@ constexpr std::array<PathFinder::Node, 8> directions{{
     {-1, 1},
 }};
 
-PathFinder::PathFinder(const Map &map) {
+PathFinder::PathFinder(const Map &map) : map(map) {
   for (int y = 0; y < map.getHeight(); y++) {
     for (int x = 0; x < map.getWidth(); x++) {
       int cell = map.getMapCell(x, y, Map::LAYER_WALLS);
@@ -40,12 +41,12 @@ PathFinder::PathFinder(const Map &map) {
   }
 }
 
-std::vector<PathFinder::Node> PathFinder::getPath(sf::Vector2i start_pos,
-                                                  sf::Vector2i goal_pos) {
+std::vector<PathFinder::Node>
+PathFinder::getPath(sf::Vector2i start_pos, sf::Vector2i goal_pos, float size) {
   Node start = {start_pos.x, start_pos.y};
   Node goal = {goal_pos.x, goal_pos.y};
 
-  auto visited = bfs(start, goal);
+  auto visited = bfs(start, goal, std::ceil(size + .01f));
   std::vector<Node> path{goal};
 
   std::optional<Node> step = start;
@@ -60,9 +61,32 @@ std::vector<PathFinder::Node> PathFinder::getPath(sf::Vector2i start_pos,
 }
 
 std::map<PathFinder::Node, std::optional<PathFinder::Node>>
-PathFinder::bfs(Node start, Node goal) {
+PathFinder::bfs(Node start, Node goal, int size) {
   std::map<Node, std::optional<Node>> visited{
       {start, std::nullopt},
+  };
+
+  auto check_axis = [&](int x, int y, bool xAxis, bool positive) {
+    for (int i = 0; i < size; i++) {
+      if (map.getMapCell(xAxis ? x + (positive ? i : -i) : x,
+                         !xAxis ? y + (positive ? i : -i) : y,
+                         Map::LAYER_WALLS)) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  auto can_stand = [&](Node node) {
+    auto [x, y] = node;
+
+    bool xpos = check_axis(x, y, true, true);
+    bool xneg = check_axis(x, y, true, false);
+    bool ypos = check_axis(x, y, false, true);
+    bool yneg = check_axis(x, y, false, false);
+
+    return (xpos || xneg) && (ypos || yneg);
   };
 
   std::deque<Node> queue{start};
@@ -74,6 +98,8 @@ PathFinder::bfs(Node start, Node goal) {
 
     auto children = graph[currentNode];
     for (const auto &nextNode : children) {
+      if (!can_stand(nextNode)) continue;
+
       if (!visited.count(nextNode)) {
         visited[nextNode] = currentNode;
         queue.push_back(nextNode);

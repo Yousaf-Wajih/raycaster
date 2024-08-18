@@ -16,10 +16,12 @@ public:
   PathFinder(const Map &map);
   const auto &getGraph() { return graph; }
 
-  std::vector<Node> getPath(sf::Vector2i start_pos, sf::Vector2i goal_pos);
+  std::vector<Node> getPath(sf::Vector2i start_pos, sf::Vector2i goal_pos,
+                            float size);
 
 private:
-  std::map<Node, std::optional<Node>> bfs(Node start, Node goal);
+  std::map<Node, std::optional<Node>> bfs(Node start, Node goal, int size);
 
   std::map<Node, std::vector<Node>> graph;
+  const Map &map;
 };
