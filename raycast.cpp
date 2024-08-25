@@ -53,8 +53,8 @@ RayHit raycast(const Map &map, sf::Vector2f pos, sf::Vector2f dir, size_t max,
     hit = map.getMapCell(mapPos.x, mapPos.y, Map::LAYER_WALLS);
     if (hit || !checkThings) continue;
 
-    float origin[2] = {pos.x, pos.y};
-    float dir_inv[2] = {1.f / dir.x, 1.f / dir.y};
+    float origin[] = {pos.x, pos.y};
+    float dir_inv[] = {1.f / dir.x, 1.f / dir.y};
 
     auto block = map.getBlockmap(mapPos.x, mapPos.y);
     for (const auto &thing : block) {

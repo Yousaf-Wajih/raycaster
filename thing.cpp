@@ -141,12 +141,13 @@ void Thing::damage(float damage, GameState state) {
 
 enum States {
   STATE_IDLE = -1,
-  STATE_RUN = 1,
   STATE_PAIN = 0,
+  STATE_RUN = 1,
   STATE_DEAD = 2,
+  STATE_ATTACK = 3,
 };
 
-void monster_update(Thing &thing, GameState state) {
+void monsterUpdate(Thing &thing, GameState state) {
   int anim = thing.animator->getAnim();
   if (anim == STATE_DEAD) return;
 
@@ -176,26 +177,44 @@ void monster_update(Thing &thing, GameState state) {
       }
     }
   } else if (anim == STATE_RUN) {
-    auto path =
-        state.pathfinder.getPath((sf::Vector2i)thing.position,
-                                 (sf::Vector2i)player->position, thing.size);
+    float playerDist = std::sqrt(toPlayerDir.x * toPlayerDir.x +
+                                 toPlayerDir.y * toPlayerDir.y);
 
-    auto [x, y] = path[path.size() - 1];
+    if (playerDist <= 1.f) {
+      thing.time = .5f;
+      thing.animator->setAnim(STATE_ATTACK, FinishAction::Last);
+      thing.angle = std::atan2(toPlayerDir.y, toPlayerDir.x) / M_PI * 180.f;
+      sound::play(Resources::sounds["monster_attack"], thing.position, 4.f);
+    } else {
+      auto path =
+          state.pathfinder.getPath((sf::Vector2i)thing.position,
+                                   (sf::Vector2i)player->position, thing.size);
 
-    sf::Vector2f next = {x + .5f, y + .5f};
-    if (state.map.getMapCell(x, y + 1, Map::LAYER_WALLS)) next.y -= .5f;
-    if (state.map.getMapCell(x, y - 1, Map::LAYER_WALLS)) next.y += .5f;
-    if (state.map.getMapCell(x + 1, y, Map::LAYER_WALLS)) next.x -= .5f;
-    if (state.map.getMapCell(x - 1, y, Map::LAYER_WALLS)) next.x += .5f;
+      auto [x, y] = path[path.size() - 1];
 
-    sf::Vector2f toPathDir = next - thing.position;
-    thing.angle = std::atan2(toPathDir.y, toPathDir.x) / M_PI * 180.f;
+      sf::Vector2f next = {x + .5f, y + .5f};
+      if (state.map.getMapCell(x, y + 1, Map::LAYER_WALLS)) next.y -= .5f;
+      if (state.map.getMapCell(x, y - 1, Map::LAYER_WALLS)) next.y += .5f;
+      if (state.map.getMapCell(x + 1, y, Map::LAYER_WALLS)) next.x -= .5f;
+      if (state.map.getMapCell(x - 1, y, Map::LAYER_WALLS)) next.x += .5f;
 
-    thing.move(state.map, dir * state.dt * 2.f);
+      sf::Vector2f toPathDir = next - thing.position;
+      thing.angle = std::atan2(toPathDir.y, toPathDir.x) / M_PI * 180.f;
+
+      thing.move(state.map, dir * state.dt * 3.f);
+    }
+  } else if (anim == STATE_ATTACK) {
+    float playerDist = std::sqrt(toPlayerDir.x * toPlayerDir.x +
+                                 toPlayerDir.y * toPlayerDir.y);
+
+    if (thing.time <= 0.f && playerDist <= 1.f) {
+      player->damage(10.f, state);
+      thing.time = (float)rand() / RAND_MAX * .5f + .5f;
+    }
   }
 }
 
-void monster_on_damage(Thing &thing, GameState state) {
+void monsterOnDamage(Thing &thing, GameState state) {
   if (thing.getHealth() <= 0.f) {
     thing.size = 0.f;
     thing.directional = false;
@@ -214,19 +233,19 @@ void monster_on_damage(Thing &thing, GameState state) {
 std::unordered_map<std::string, std::shared_ptr<Thinker>> thinkers{
     {
         "monster",
-        std::make_shared<FunctionThinker>(monster_update, monster_on_damage),
+        std::make_shared<FunctionThinker>(monsterUpdate, monsterOnDamage),
     },
 };
 
 std::vector<ThingDef> thingDefs{
-    {"player", .4f, ""},
+    {"player", .4f, "", false, "", 100.f},
     {"barrel", .5f, "barrel"},
     {"pillar", .4f, "pillar"},
     {"light", 0.f, "light"},
 
     {
         "monster",
-        1.f,
+        .5f,
         "monster_idle0",
         true,
         "monster",
@@ -246,6 +265,12 @@ std::vector<ThingDef> thingDefs{
                 {.6f, "monster_death3"},
                 {.8f, "monster_death4"},
                 {1.4f, "monster_death5"},
+            },
+            {
+                {.0f, "monster_attack0_0"},
+                {.3f, "monster_attack1_0"},
+                {.5f, "monster_attack2_0"},
+                {.8f, "monster_attack2_0"},
             },
         },
     },

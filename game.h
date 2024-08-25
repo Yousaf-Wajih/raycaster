@@ -2,7 +2,9 @@
 #define _GAME_H
 
 #include <SFML/Audio/SoundBuffer.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Window.hpp>
@@ -46,6 +48,11 @@ private:
   Animator<sf::Texture *> weaponAnim;
 
   float gridSize2d;
+
+  sf::Font font;
+  sf::Text healthText;
+
+  float playerHurtTimer;
 };
 
 #endif // !_GAME_H

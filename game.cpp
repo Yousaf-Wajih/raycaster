@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include <SFML/Audio/Listener.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
@@ -27,6 +28,8 @@
 #include "sound.h"
 #include "state.h"
 #include "thing.h"
+
+constexpr float PLAYER_HURT_TIME = .5f;
 
 Game::Game(Map &map)
     : things(), renderer(), pathfinder(map), gridSize2d(64.f),
@@ -83,6 +86,13 @@ Game::Game(Map &map)
   weaponFireTex[2].loadFromFile("weapon_fire2.png");
   weaponFireTex[3].loadFromFile("weapon_fire3.png");
 
+  font.loadFromFile("font.ttf");
+  healthText.setFont(font);
+  healthText.setCharacterSize(100);
+  healthText.setOutlineThickness(2.f);
+  healthText.setOutlineColor(sf::Color::Black);
+  healthText.setFillColor(sf::Color(150, 20, 20));
+
   for (const auto &thing : things) { thing->setup_blockmap(map); }
 }
 
@@ -95,6 +105,7 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
     things.erase(it);
   }
 
+  playerHurtTimer -= dt;
   to_delete.clear();
 
   window.setMouseCursorVisible(!isMouseCaptured);
@@ -106,13 +117,21 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
     sf::Mouse::setPosition(lastMousePos, window);
   }
 
+  float playerHealth = player->thing->getHealth();
+  if (playerHealth <= 0.f) return;
+
   GameState state{*this, map, pathfinder, dt};
   player->update(dt, state, weaponAnim, mouseDelta, !game_mode);
+
   if (game_mode) {
     for (auto &thing : things) {
-      if (thing->thinker) { thing->thinker->update(*thing, state); }
       if (thing->animator) { thing->animator->update(dt); }
+      if (thing->thinker) { thing->thinker->update(*thing, state); }
     }
+  }
+
+  if (player->thing->getHealth() < playerHealth) {
+    playerHurtTimer = PLAYER_HURT_TIME;
   }
 
   weaponAnim.update(dt);
@@ -134,9 +153,6 @@ void Game::handleEvent(const sf::Event &event, sf::Window &window) {
 
 void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
                   bool game_mode) {
-  auto path = pathfinder.getPath(
-      {8, 3}, static_cast<sf::Vector2i>(player->thing->position), 1.f);
-
   if (view2d) {
     sf::Vector2f center = player->thing->position * gridSize2d;
     sf::Vector2f size = static_cast<sf::Vector2f>(window.getSize());
@@ -157,27 +173,17 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       rect.setPosition(thing->position * gridSize2d);
 
       sf::Color color = sf::Color::Green;
-      if (player->thing == thing.get()) { color = sf::Color::Yellow; }
-      // else if (game_mode) {
-      //   continue;
-      // }
+      if (player->thing == thing.get()) {
+        color = sf::Color::Yellow;
+      } else if (game_mode) {
+        continue;
+      }
 
       rect.setOutlineColor(color);
       line.setFillColor(color);
 
       window.draw(rect);
       window.draw(line);
-    }
-
-    if (game_mode) {
-      rect.setFillColor(sf::Color::Blue);
-      rect.setOutlineThickness(0.f);
-      rect.setSize({gridSize2d, gridSize2d});
-      rect.setOrigin({0, 0});
-      for (const auto &[x, y] : path) {
-        rect.setPosition(x * gridSize2d, y * gridSize2d);
-        window.draw(rect);
-      }
     }
   } else {
     sf::Vector2f size = static_cast<sf::Vector2f>(window.getSize());
@@ -192,6 +198,21 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
       weapon.setPosition(window.getSize().x / 2.f, window.getSize().y);
       weapon.setScale(sf::Vector2f(2.5f, 2.5f) * (window.getSize().x / 960.f));
       window.draw(weapon);
+    }
+
+    healthText.setString("Health: " + std::to_string(static_cast<int>(
+                                          player->thing->getHealth())));
+
+    healthText.setOrigin(0, healthText.getLocalBounds().height);
+    healthText.setPosition(10.f, window.getSize().y - 10.f);
+    window.draw(healthText);
+
+    if (playerHurtTimer > 0.f) {
+      sf::RectangleShape shape{static_cast<sf::Vector2f>(window.getSize())};
+      shape.setFillColor(
+          sf::Color(200, 0, 0, playerHurtTimer / PLAYER_HURT_TIME * 255));
+
+      window.draw(shape);
     }
   }
 }
