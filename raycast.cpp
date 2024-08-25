@@ -9,7 +9,7 @@
 #include <limits>
 
 RayHit raycast(const Map &map, sf::Vector2f pos, sf::Vector2f dir, size_t max,
-               bool checkThings, Thing *ignore) {
+               bool checkThings, Thing *ignore, Thing *check) {
   sf::Vector2f deltaDist{
       std::abs(1.0f / dir.x),
       std::abs(1.0f / dir.y),
@@ -59,6 +59,7 @@ RayHit raycast(const Map &map, sf::Vector2f pos, sf::Vector2f dir, size_t max,
     auto block = map.getBlockmap(mapPos.x, mapPos.y);
     for (const auto &thing : block) {
       if (thing == ignore) continue;
+      if (check && thing != check) continue;
 
       sf::Vector2f halfSize = {thing->size / 2.f, thing->size / 2.f};
       sf::Vector2f start = thing->position - halfSize;

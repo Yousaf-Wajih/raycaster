@@ -66,7 +66,7 @@ PathFinder::bfs(Node start, Node goal, int size) {
       {start, std::nullopt},
   };
 
-  auto check_axis = [&](int x, int y, bool xAxis, bool positive) {
+  auto checkAxis = [&](int x, int y, bool xAxis, bool positive) {
     for (int i = 0; i < size; i++) {
       if (map.getMapCell(xAxis ? x + (positive ? i : -i) : x,
                          !xAxis ? y + (positive ? i : -i) : y,
@@ -78,13 +78,13 @@ PathFinder::bfs(Node start, Node goal, int size) {
     return true;
   };
 
-  auto can_stand = [&](Node node) {
+  auto canStand = [&](Node node) {
     auto [x, y] = node;
 
-    bool xpos = check_axis(x, y, true, true);
-    bool xneg = check_axis(x, y, true, false);
-    bool ypos = check_axis(x, y, false, true);
-    bool yneg = check_axis(x, y, false, false);
+    bool xpos = checkAxis(x, y, true, true);
+    bool xneg = checkAxis(x, y, true, false);
+    bool ypos = checkAxis(x, y, false, true);
+    bool yneg = checkAxis(x, y, false, false);
 
     return (xpos || xneg) && (ypos || yneg);
   };
@@ -98,7 +98,7 @@ PathFinder::bfs(Node start, Node goal, int size) {
 
     auto children = graph[currentNode];
     for (const auto &nextNode : children) {
-      if (!can_stand(nextNode)) continue;
+      if (!canStand(nextNode)) continue;
 
       if (!visited.count(nextNode)) {
         visited[nextNode] = currentNode;

@@ -18,6 +18,6 @@ struct RayHit {
 
 RayHit raycast(const Map &map, sf::Vector2f pos, sf::Vector2f dir,
                size_t max = 64, bool checkThings = false,
-               Thing *ignore = nullptr);
+               Thing *ignore = nullptr, Thing *check = nullptr);
 
 #endif

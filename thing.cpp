@@ -167,9 +167,10 @@ void monster_update(Thing &thing, GameState state) {
   if (anim == STATE_IDLE) {
     float dot = dir.x * toPlayerDir.x + dir.y * toPlayerDir.y;
     if (dot > 0.f) {
-      auto hit = raycast(state.map, thing.position, toPlayerDir, 32, true);
+      auto hit = raycast(state.map, thing.position, toPlayerDir, 32, true,
+                         nullptr, player);
 
-      if (hit.thing == player) {
+      if (hit.thing) {
         thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
         sound::play(Resources::sounds["monster_alert"], thing.position, 4.f);
       }
@@ -182,6 +183,11 @@ void monster_update(Thing &thing, GameState state) {
     auto [x, y] = path[path.size() - 1];
 
     sf::Vector2f next = {x + .5f, y + .5f};
+    if (state.map.getMapCell(x, y + 1, Map::LAYER_WALLS)) next.y -= .5f;
+    if (state.map.getMapCell(x, y - 1, Map::LAYER_WALLS)) next.y += .5f;
+    if (state.map.getMapCell(x + 1, y, Map::LAYER_WALLS)) next.x -= .5f;
+    if (state.map.getMapCell(x - 1, y, Map::LAYER_WALLS)) next.x += .5f;
+
     sf::Vector2f toPathDir = next - thing.position;
     thing.angle = std::atan2(toPathDir.y, toPathDir.x) / M_PI * 180.f;
 

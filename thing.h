@@ -71,7 +71,7 @@ public:
   std::unique_ptr<Animator<int>> animator;
   std::shared_ptr<Thinker> thinker;
 
-  float time; // used by monster
+  float time;
 
 private:
   bool checkMapCollision(const Map &map, sf::Vector2f newPosition, bool xAxis);
