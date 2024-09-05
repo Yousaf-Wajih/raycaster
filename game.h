@@ -38,7 +38,7 @@ private:
   Renderer renderer;
   PathFinder pathfinder;
 
-  std::vector<decltype(things)::iterator> to_delete;
+  std::vector<decltype(things)::iterator> toDelete;
 
   bool isMouseCaptured;
   sf::Vector2i lastMousePos;
@@ -50,9 +50,10 @@ private:
   float gridSize2d;
 
   sf::Font font;
-  sf::Text healthText;
+  sf::Text healthText, gameOverText, winText;
 
   float playerHurtTimer;
+  bool hasWon;
 };
 
 #endif // !_GAME_H

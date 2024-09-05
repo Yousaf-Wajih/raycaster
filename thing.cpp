@@ -221,10 +221,7 @@ void monsterOnDamage(Thing &thing, GameState state) {
     thing.animator->setAnim(STATE_DEAD);
     sound::play(Resources::sounds["monster_death"], thing.position, 6.f);
   } else if (thing.animator) {
-    if (thing.animator->getAnim() == STATE_IDLE) {
-      thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
-    }
-
+    thing.animator->setAnim(STATE_RUN, FinishAction::Loop);
     thing.animator->setAnim(STATE_PAIN, FinishAction::Last);
     sound::play(Resources::sounds["monster_pain"], thing.position, 5.f);
   }

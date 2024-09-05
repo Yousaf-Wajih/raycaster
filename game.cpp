@@ -13,6 +13,7 @@
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Window.hpp>
 #include <algorithm>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -32,7 +33,7 @@
 constexpr float PLAYER_HURT_TIME = .5f;
 
 Game::Game(Map &map)
-    : things(), renderer(), pathfinder(map), gridSize2d(64.f),
+    : hasWon(), things(), renderer(), pathfinder(map), gridSize2d(64.f),
       isMouseCaptured(), weaponAnim(&weaponTex, {Animation<sf::Texture *>({
                                                     {.0f, &weaponFireTex[0]},
                                                     {.15f, &weaponFireTex[1]},
@@ -93,11 +94,27 @@ Game::Game(Map &map)
   healthText.setOutlineColor(sf::Color::Black);
   healthText.setFillColor(sf::Color(150, 20, 20));
 
+  gameOverText.setFont(font);
+  gameOverText.setCharacterSize(256);
+  gameOverText.setOutlineThickness(8.f);
+  gameOverText.setOutlineColor(sf::Color::Black);
+  gameOverText.setFillColor(sf::Color(180, 25, 25));
+  gameOverText.setString("Game Over!");
+  gameOverText.setOrigin(gameOverText.getLocalBounds().getSize() / 2.f);
+
+  winText.setFont(font);
+  winText.setCharacterSize(256);
+  winText.setOutlineThickness(8.f);
+  winText.setOutlineColor(sf::Color::Black);
+  winText.setFillColor(sf::Color::White);
+  winText.setString("You Won!");
+  winText.setOrigin(gameOverText.getLocalBounds().getSize() / 2.f);
+
   for (const auto &thing : things) { thing->setup_blockmap(map); }
 }
 
-void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
-  for (const auto &it : to_delete) {
+void Game::update(sf::Window &window, float dt, Map &map, bool gameMode) {
+  for (const auto &it : toDelete) {
     for (const auto &[x, y] : it->get()->getBlockmapCoords()) {
       map.removeFromBlockmap(x, y, it->get());
     }
@@ -106,7 +123,7 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
   }
 
   playerHurtTimer -= dt;
-  to_delete.clear();
+  toDelete.clear();
 
   window.setMouseCursorVisible(!isMouseCaptured);
 
@@ -118,16 +135,21 @@ void Game::update(sf::Window &window, float dt, Map &map, bool game_mode) {
   }
 
   float playerHealth = player->thing->getHealth();
-  if (playerHealth <= 0.f) return;
+  if (playerHealth <= 0.f || hasWon) return;
 
   GameState state{*this, map, pathfinder, dt};
-  player->update(dt, state, weaponAnim, mouseDelta, !game_mode);
+  player->update(dt, state, weaponAnim, mouseDelta, !gameMode);
 
-  if (game_mode) {
+  if (gameMode) {
+    size_t enemyCount = 0;
     for (auto &thing : things) {
       if (thing->animator) { thing->animator->update(dt); }
       if (thing->thinker) { thing->thinker->update(*thing, state); }
+
+      if (thing->type == "monster" && thing->getHealth() > 0.f) enemyCount++;
     }
+
+    if (enemyCount == 0) hasWon = true;
   }
 
   if (player->thing->getHealth() < playerHealth) {
@@ -214,13 +236,33 @@ void Game::render(sf::RenderWindow &window, const Map &map, bool view2d,
 
       window.draw(shape);
     }
+
+    if (player->thing->getHealth() <= 0.f) {
+      auto size = static_cast<sf::Vector2f>(window.getSize());
+      sf::RectangleShape shape{size};
+      shape.setFillColor(sf::Color(0, 0, 0, 150));
+      window.draw(shape);
+
+      gameOverText.setPosition(size / 2.f);
+      window.draw(gameOverText);
+    }
+
+    if (hasWon) {
+      auto size = static_cast<sf::Vector2f>(window.getSize());
+      sf::RectangleShape shape{size};
+      shape.setFillColor(sf::Color(0, 0, 0, 150));
+      window.draw(shape);
+
+      winText.setPosition(size / 2.f);
+      window.draw(winText);
+    }
   }
 }
 
 void Game::destroy(Thing *thing) {
   for (auto it = things.begin(); it != things.end(); it++) {
     if (it->get() == thing) {
-      to_delete.push_back(it);
+      toDelete.push_back(it);
       break;
     }
   }

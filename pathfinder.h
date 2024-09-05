@@ -3,6 +3,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <map>
 #include <optional>
+#include <set>
 #include <unordered_map>
 #include <utility>
 #include <vector>
